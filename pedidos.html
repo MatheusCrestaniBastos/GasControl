@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Pedidos — GasMaster</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    /* ---- Kanban status filter pills ---- */
+    .status-filters {
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    }
+    .sf-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      font-size: 12px; font-weight: 600;
+      color: var(--txt3);
+      cursor: pointer;
+      transition: all var(--t) var(--ease2);
+      white-space: nowrap;
+    }
+    .sf-pill:hover { border-color: var(--border2); color: var(--txt); }
+    .sf-pill.on { color: var(--txt); }
+    .sf-pill[data-s=""].on   { background:var(--surface3); border-color:var(--border2); color:var(--txt); }
+    .sf-pill[data-s="pendente"].on { background:var(--amber-dim); border-color:rgba(245,166,35,.3); color:var(--amber); }
+    .sf-pill[data-s="em_entrega"].on { background:var(--blue-dim); border-color:rgba(59,127,255,.3); color:#7BAFFF; }
+    .sf-pill[data-s="entregue"].on { background:var(--emerald-dim); border-color:rgba(0,212,140,.2); color:var(--emerald); }
+    .sf-pill[data-s="cancelado"].on { background:var(--rose-dim); border-color:rgba(255,77,109,.2); color:var(--rose); }
+
+    .sf-count {
+      font-size: 10px; font-weight: 800;
+      background: rgba(255,255,255,.1);
+      padding: 1px 6px; border-radius: 10px;
+    }
+
+    /* ---- Status modal buttons ---- */
+    .st-btn {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      background: var(--surface2);
+      cursor: pointer;
+      transition: all var(--t2) var(--ease);
+      text-align: left;
+      width: 100%;
+      margin-bottom: 8px;
+      font-family: inherit;
+    }
+    .st-btn:hover { background: var(--surface3); border-color: var(--border2); transform: translateX(3px); }
+    .st-btn-ico { font-size: 22px; flex-shrink: 0; }
+    .st-btn-lbl { font-size: 14px; font-weight: 700; color: var(--txt); margin-bottom: 2px; }
+    .st-btn-sub { font-size: 12px; color: var(--txt3); }
+
+    /* ---- Order number tag ---- */
+    .order-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--txt2);
+      padding: 3px 9px;
+      border-radius: 5px;
+      letter-spacing: .3px;
+    }
+
+    /* ---- Value calc display ---- */
+    .val-display {
+      background: var(--surface2);
+      border: 1px solid rgba(0,212,140,.2);
+      border-radius: var(--r-sm);
+      padding: 10px 14px;
+      text-align: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 20px; font-weight: 800;
+      color: var(--emerald);
+      letter-spacing: -1px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="mob-overlay" id="mob-overlay"></div>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="tb-left">
+        <button class="topbar-icon-btn sidebar-toggle" id="sidebar-toggle">☰</button>
+        <div>
+          <div class="tb-page-title">Pedidos</div>
+          <div class="tb-crumb">Gestão de pedidos e entregas</div>
+        </div>
+      </div>
+      <div class="tb-right">
+        <button class="btn btn-primary" onclick="openOrder()">＋ Novo Pedido</button>
+      </div>
+    </header>
+
+    <div class="page">
+      <!-- Metrics -->
+      <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
+        <div class="mcard c-blue"><div class="mcard-icon">📦</div><div class="mcard-val" id="mp-total">—</div><div class="mcard-lbl">Total</div></div>
+        <div class="mcard c-amber"><div class="mcard-icon">⏳</div><div class="mcard-val" id="mp-pend">—</div><div class="mcard-lbl">Pendentes</div></div>
+        <div class="mcard c-violet"><div class="mcard-icon">🚚</div><div class="mcard-val" id="mp-ent">—</div><div class="mcard-lbl">Em Entrega</div></div>
+        <div class="mcard c-green"><div class="mcard-icon">✅</div><div class="mcard-val" id="mp-done">—</div><div class="mcard-lbl">Entregues</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd">
+          <div>
+            <div class="card-title">Pedidos</div>
+            <div class="card-sub" id="order-count">Carregando...</div>
+          </div>
+        </div>
+
+        <!-- Filters row -->
+        <div class="search-row" style="flex-direction:column;gap:12px;align-items:stretch;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <div class="search-wrap" style="flex:1;min-width:180px;">
+              <span class="search-ico">🔍</span>
+              <input type="text" class="finput" id="search" placeholder="Buscar número, observação..." oninput="onSearch(this.value)"/>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="loadOrders(true)">↺</button>
+          </div>
+          <div class="status-filters" id="sf">
+            <button class="sf-pill on" data-s="" onclick="setFilter('')">Todos <span class="sf-count" id="sf-total">—</span></button>
+            <button class="sf-pill" data-s="pendente" onclick="setFilter('pendente')">⏳ Pendente <span class="sf-count" id="sf-pend">—</span></button>
+            <button class="sf-pill" data-s="em_entrega" onclick="setFilter('em_entrega')">🚚 Em Entrega <span class="sf-count" id="sf-ent">—</span></button>
+            <button class="sf-pill" data-s="entregue" onclick="setFilter('entregue')">✅ Entregue <span class="sf-count" id="sf-done">—</span></button>
+            <button class="sf-pill" data-s="cancelado" onclick="setFilter('cancelado')">❌ Cancelado <span class="sf-count" id="sf-canc">—</span></button>
+          </div>
+        </div>
+
+        <div id="order-content">
+          <div class="loading-state"><div class="spinner spinner-lg" style="color:var(--brand)"></div><span>Carregando pedidos...</span></div>
+        </div>
+
+        <div class="pager" id="pager" style="display:none">
+          <div class="pager-info" id="pager-info"></div>
+          <div class="pager-btns" id="pager-btns"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL PEDIDO -->
+<div class="modal-bg" id="modal-order">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title" id="order-modal-title">Novo Pedido</div>
+        <div class="modal-sub">Preencha os dados do pedido</div>
+      </div>
+      <button class="modal-x" onclick="closeMod('modal-order')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-error" id="oe"><span>⚠</span><span id="oe-msg"></span></div>
+      <input type="hidden" id="o-id"/>
+
+      <div class="fg">
+        <label class="flabel">Cliente <span class="req">*</span></label>
+        <select class="finput" id="o-client">
+          <option value="">Selecionar cliente...</option>
+        </select>
+        <div class="ferror" id="err-cli">Selecione um cliente</div>
+        <div class="fhint">Não encontrou? <a href="clientes.html?novo=1" target="_blank" style="color:var(--brand)">Cadastrar novo →</a></div>
+      </div>
+
+      <div class="frow">
+        <div class="fg">
+          <label class="flabel">Produto</label>
+          <select class="finput" id="o-tipo">
+            <option value="P13">🔥 Botijão P13 (13kg)</option>
+            <option value="P45">🔥 Botijão P45 (45kg)</option>
+            <option value="P20">🔥 Botijão P20 (20kg)</option>
+            <option value="P8">🔥 Botijão P8 (8kg)</option>
+            <option value="outro">Outro produto</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="flabel">Quantidade <span class="req">*</span></label>
+          <input type="number" class="finput" id="o-qtd" min="1" value="1" oninput="calcTotal()"/>
+          <div class="ferror" id="err-qtd">Quantidade inválida</div>
+        </div>
+      </div>
+
+      <div class="frow">
+        <div class="fg">
+          <label class="flabel">Valor unitário (R$) <span class="req">*</span></label>
+          <input type="number" class="finput" id="o-val" min="0" step="0.01" placeholder="0.00" oninput="calcTotal()"/>
+          <div class="ferror" id="err-val">Valor inválido</div>
+        </div>
+        <div class="fg">
+          <label class="flabel">Valor total</label>
+          <div class="val-display" id="o-total">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="frow">
+        <div class="fg">
+          <label class="flabel">Pagamento</label>
+          <select class="finput" id="o-pag">
+            <option value="dinheiro">💵 Dinheiro</option>
+            <option value="pix">🟦 PIX</option>
+            <option value="cartao_debito">💳 Débito</option>
+            <option value="cartao_credito">💳 Crédito</option>
+            <option value="fiado">🤝 Fiado</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="flabel">Troco para (R$)</label>
+          <input type="number" class="finput" id="o-troco" min="0" step="0.01" placeholder="Opcional"/>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="flabel">Endereço de entrega</label>
+        <input type="text" class="finput" id="o-end" placeholder="Deixe em branco para usar o do cliente"/>
+      </div>
+      <div class="fg">
+        <label class="flabel">Observações</label>
+        <textarea class="finput" id="o-obs" rows="2" placeholder="Instruções especiais, horário..."></textarea>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeMod('modal-order')">Cancelar</button>
+      <button class="btn btn-primary" id="order-save" onclick="saveOrder()">
+        <span id="order-save-txt">📦 Criar Pedido</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL STATUS -->
+<div class="modal-bg" id="modal-status">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-title">Atualizar Status</div>
+        <div class="modal-sub" id="st-num">—</div>
+      </div>
+      <button class="modal-x" onclick="closeMod('modal-status')">×</button>
+    </div>
+    <div class="modal-body">
+      <button class="st-btn" onclick="setStatus('pendente')">
+        <span class="st-btn-ico">⏳</span>
+        <div><div class="st-btn-lbl" style="color:var(--amber)">Pendente</div><div class="st-btn-sub">Aguardando saída para entrega</div></div>
+      </button>
+      <button class="st-btn" onclick="setStatus('em_entrega')">
+        <span class="st-btn-ico">🚚</span>
+        <div><div class="st-btn-lbl" style="color:#7BAFFF">Em Entrega</div><div class="st-btn-sub">Saiu para entrega agora</div></div>
+      </button>
+      <button class="st-btn" onclick="setStatus('entregue')">
+        <span class="st-btn-ico">✅</span>
+        <div><div class="st-btn-lbl" style="color:var(--emerald)">Entregue</div><div class="st-btn-sub">Pedido finalizado com sucesso</div></div>
+      </button>
+      <button class="st-btn" onclick="setStatus('cancelado')">
+        <span class="st-btn-ico">❌</span>
+        <div><div class="st-btn-lbl" style="color:var(--rose)">Cancelado</div><div class="st-btn-sub">Remover da fila de entrega</div></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="services/supabase.js"></script>
+<script>
+  let pg=1,total_pg=1,q='',filterSt='',editId=null,statusId=null;
+  const PER=15;
+  const pagIco={dinheiro:'💵',pix:'🟦',cartao_debito:'💳',cartao_credito:'💳',fiado:'🤝'};
+
+  async function init(){
+    await Components.initLayout('pedidos','Pedidos');
+    loadMetrics();
+    loadOrders();
+    loadClientsSelect();
+    const p=new URLSearchParams(window.location.search);
+    if(p.get('novo')==='1') openOrder();
+    if(p.get('status')){setFilter(p.get('status'));}
+  }
+
+  async function loadMetrics(){
+    try {
+      const m=await PedidosService.metricas();
+      document.getElementById('mp-total').textContent=m.total;
+      document.getElementById('mp-pend').textContent=m.pendentes;
+      document.getElementById('mp-ent').textContent=m.emEntrega;
+      document.getElementById('mp-done').textContent=m.entregues;
+      // Update filter counts
+      document.getElementById('sf-total').textContent=m.total;
+      document.getElementById('sf-pend').textContent=m.pendentes;
+      document.getElementById('sf-ent').textContent=m.emEntrega;
+      document.getElementById('sf-done').textContent=m.entregues;
+    } catch(e){}
+  }
+
+  async function loadOrders(reset=false){
+    if(reset) pg=1;
+    const el=document.getElementById('order-content');
+    if(pg===1) el.innerHTML=`<div class="loading-state"><div class="spinner spinner-lg" style="color:var(--brand)"></div><span>Carregando...</span></div>`;
+    try {
+      const r=await PedidosService.listar({search:q,status:filterSt,page:pg,limit:PER});
+      total_pg=r.totalPages||1;
+      document.getElementById('order-count').textContent=`${r.count} pedido${r.count!==1?'s':''} encontrado${r.count!==1?'s':''}`;
+      renderOrders(r.data);
+      renderPager(r.count);
+    } catch(err){
+      el.innerHTML=`<div class="tbl-empty"><div class="tbl-empty-ico">❌</div><p>${err.message}</p></div>`;
+    }
+  }
+
+  function renderOrders(orders){
+    const el=document.getElementById('order-content');
+    if(!orders.length){
+      el.innerHTML=`<div class="tbl-empty"><div class="tbl-empty-ico">📦</div><p>Nenhum pedido${filterSt?' com este status':''} encontrado.</p><button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="openOrder()">Criar pedido</button></div>`;
+      return;
+    }
+    el.innerHTML=`<div class="tbl-wrap"><table>
+      <thead><tr><th>Número</th><th>Cliente</th><th>Produto</th><th>Valor</th><th>Pagamento</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
+      <tbody>${orders.map(o=>`<tr>
+        <td><span class="order-num">${o.numero}</span></td>
+        <td><div style="display:flex;align-items:center;gap:9px">
+          <div class="avatar" style="width:30px;height:30px;font-size:11px">${Utils.initials(o.clientes?.nome)}</div>
+          <div>
+            <div style="font-weight:600;font-size:13.5px">${o.clientes?.nome||'—'}</div>
+            <div style="font-size:11px;color:var(--txt3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.endereco_entrega||o.clientes?.endereco||''}</div>
+          </div>
+        </div></td>
+        <td><div style="font-size:13px;font-weight:600">${o.tipo_produto||'P13'}</div><div style="font-size:11px;color:var(--txt3)">${o.quantidade||1} un.</div></td>
+        <td><div style="font-size:13.5px;font-weight:700;color:var(--emerald)">${Utils.formatCurrency(o.valor_total)}</div><div style="font-size:11px;color:var(--txt3)">${Utils.formatCurrency(o.valor_unitario)}/un</div></td>
+        <td style="font-size:12.5px">${pagIco[o.forma_pagamento]||''} ${o.forma_pagamento||'—'}</td>
+        <td>${Utils.statusBadge(o.status)}</td>
+        <td style="font-size:12px;color:var(--txt3);white-space:nowrap">${Utils.formatDateShort(o.created_at)}</td>
+        <td><div class="td-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openStatusModal('${o.id}','${o.numero}')" title="Mudar status">📋</button>
+          <button class="btn btn-ghost btn-sm" onclick="openOrder('${o.id}')" title="Editar">✏</button>
+          <button class="btn btn-danger btn-sm" onclick="delOrder('${o.id}','${o.numero}')">🗑</button>
+        </div></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }
+
+  function renderPager(count){
+    const el=document.getElementById('pager');
+    if(count<=PER){el.style.display='none';return;}
+    el.style.display='flex';
+    const from=(pg-1)*PER+1,to=Math.min(pg*PER,count);
+    document.getElementById('pager-info').textContent=`${from}–${to} de ${count}`;
+    let h=`<button class="pager-btn" onclick="goPage(${pg-1})" ${pg===1?'disabled':''}>‹</button>`;
+    for(let i=1;i<=total_pg;i++){
+      if(i===1||i===total_pg||Math.abs(i-pg)<=1) h+=`<button class="pager-btn ${i===pg?'on':''}" onclick="goPage(${i})">${i}</button>`;
+      else if(Math.abs(i-pg)===2) h+=`<span style="color:var(--txt3);padding:0 2px">…</span>`;
+    }
+    h+=`<button class="pager-btn" onclick="goPage(${pg+1})" ${pg===total_pg?'disabled':''}>›</button>`;
+    document.getElementById('pager-btns').innerHTML=h;
+  }
+
+  function goPage(p){if(p<1||p>total_pg)return;pg=p;loadOrders();window.scrollTo({top:0,behavior:'smooth'});}
+  const onSearch=Utils.debounce(v=>{q=v;loadOrders(true);},400);
+
+  function setFilter(s){
+    filterSt=s;
+    document.querySelectorAll('.sf-pill').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+    loadOrders(true);
+  }
+
+  // ---- CLIENTS SELECT ----
+  async function loadClientsSelect(sel=null){
+    try{
+      const cs=await ClientesService.listarTodos();
+      const sel_el=document.getElementById('o-client');
+      sel_el.innerHTML='<option value="">Selecionar cliente...</option>'+
+        cs.map(c=>`<option value="${c.id}" data-end="${c.endereco||''}">${c.nome} — ${Utils.formatPhone(c.telefone)}</option>`).join('');
+      if(sel) sel_el.value=sel;
+      sel_el.addEventListener('change',function(){
+        const opt=this.options[this.selectedIndex];
+        const endEl=document.getElementById('o-end');
+        if(opt&&opt.dataset.end&&!endEl.value) endEl.placeholder=`Endereço: ${opt.dataset.end}`;
+      });
+    }catch(e){}
+  }
+
+  function calcTotal(){
+    const q=parseFloat(document.getElementById('o-qtd').value)||0;
+    const v=parseFloat(document.getElementById('o-val').value)||0;
+    document.getElementById('o-total').textContent=Utils.formatCurrency(q*v);
+  }
+
+  // ---- ORDER MODAL ----
+  async function openOrder(id=null){
+    editId=id;
+    clearOrderForm();
+    document.getElementById('order-modal-title').textContent=id?'Editar Pedido':'Novo Pedido';
+    document.getElementById('order-save-txt').textContent=id?'💾 Salvar Alterações':'📦 Criar Pedido';
+    if(id){
+      try{
+        const o=await PedidosService.buscarPorId(id);
+        document.getElementById('o-id').value=o.id;
+        await loadClientsSelect(o.cliente_id);
+        document.getElementById('o-tipo').value=o.tipo_produto||'P13';
+        document.getElementById('o-qtd').value=o.quantidade||1;
+        document.getElementById('o-val').value=o.valor_unitario||'';
+        document.getElementById('o-pag').value=o.forma_pagamento||'dinheiro';
+        document.getElementById('o-troco').value=o.troco_para||'';
+        document.getElementById('o-obs').value=o.observacoes||'';
+        document.getElementById('o-end').value=o.endereco_entrega||'';
+        calcTotal();
+      }catch(err){Utils.toast('error','Erro',err.message);return;}
+    }
+    openMod('modal-order');
+  }
+
+  function clearOrderForm(){
+    ['o-id','o-client','o-tipo','o-qtd','o-val','o-pag','o-troco','o-obs','o-end'].forEach(i=>{
+      const e=document.getElementById(i);if(e){e.value=i==='o-qtd'?'1':i==='o-tipo'?'P13':i==='o-pag'?'dinheiro':'';}
+    });
+    document.getElementById('o-total').textContent='R$ 0,00';
+    document.querySelectorAll('#modal-order .finput').forEach(e=>e.classList.remove('invalid'));
+    document.getElementById('oe').classList.remove('show');
+  }
+
+  async function saveOrder(){
+    let ok=true;
+    if(!document.getElementById('o-client').value){document.getElementById('o-client').classList.add('invalid');ok=false;}
+    else document.getElementById('o-client').classList.remove('invalid');
+    const qtd=parseFloat(document.getElementById('o-qtd').value);
+    if(!qtd||qtd<1){document.getElementById('o-qtd').classList.add('invalid');ok=false;}
+    else document.getElementById('o-qtd').classList.remove('invalid');
+    const val=parseFloat(document.getElementById('o-val').value);
+    if(!val||val<=0){document.getElementById('o-val').classList.add('invalid');ok=false;}
+    else document.getElementById('o-val').classList.remove('invalid');
+    if(!ok) return;
+
+    const btn=document.getElementById('order-save');
+    btn.disabled=true;btn.innerHTML='<div class="spinner" style="color:#fff"></div>';
+    const p={
+      cliente_id:document.getElementById('o-client').value,
+      tipo_produto:document.getElementById('o-tipo').value,
+      quantidade:qtd,valor_unitario:val,
+      forma_pagamento:document.getElementById('o-pag').value,
+      troco_para:parseFloat(document.getElementById('o-troco').value)||null,
+      observacoes:document.getElementById('o-obs').value.trim()||null,
+      endereco_entrega:document.getElementById('o-end').value.trim()||null
+    };
+    try{
+      if(editId) await PedidosService.atualizar(editId,p);
+      else{const n=await PedidosService.criar(p);Utils.toast('success','Pedido criado!',`Nº ${n.numero}`);}
+      if(editId) Utils.toast('success','Pedido atualizado!');
+      closeMod('modal-order');loadOrders(true);loadMetrics();
+    }catch(err){
+      const e=document.getElementById('oe');
+      document.getElementById('oe-msg').textContent=err.message;
+      e.classList.add('show');
+    }finally{
+      btn.disabled=false;btn.innerHTML=`<span id="order-save-txt">${editId?'💾 Salvar Alterações':'📦 Criar Pedido'}</span>`;
+    }
+  }
+
+  // ---- STATUS MODAL ----
+  function openStatusModal(id,num){
+    statusId=id;
+    document.getElementById('st-num').textContent=`Pedido ${num}`;
+    openMod('modal-status');
+  }
+  async function setStatus(s){
+    if(!statusId) return;
+    try{
+      await PedidosService.atualizarStatus(statusId,s);
+      Utils.toast('success','Status atualizado!',Utils.statusLabel(s));
+      closeMod('modal-status');loadOrders();loadMetrics();
+    }catch(err){Utils.toast('error','Erro',err.message);}
+  }
+
+  async function delOrder(id,num){
+    const ok=await Utils.confirm('Excluir pedido',`Remover pedido ${num}? Esta ação não pode ser desfeita.`);
+    if(!ok) return;
+    try{await PedidosService.excluir(id);Utils.toast('success','Pedido excluído!',num);loadOrders(true);loadMetrics();}
+    catch(err){Utils.toast('error','Erro ao excluir',err.message);}
+  }
+
+  function openMod(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+  function closeMod(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+  document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',function(e){if(e.target===this)closeMod(this.id);}));
+
+  init();
+</script>
+</body>
+</html>

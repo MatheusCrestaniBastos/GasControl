@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Dashboard — GasMaster</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    /* ---- Dashboard-specific ---- */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 340px;
+      grid-template-rows: auto auto;
+      gap: 18px;
+    }
+    .dash-recent { grid-column: 1 / 3; }
+    .dash-status { grid-column: 3 / 4; grid-row: 1 / 3; }
+    .dash-quick  { grid-column: 1 / 2; }
+    .dash-chart  { grid-column: 2 / 3; }
+
+    @media (max-width: 1200px) {
+      .dash-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+      }
+      .dash-recent { grid-column: 1 / 3; }
+      .dash-status { grid-column: 1 / 3; grid-row: auto; }
+      .dash-quick  { grid-column: 1 / 2; }
+      .dash-chart  { grid-column: 2 / 3; }
+    }
+    @media (max-width: 768px) {
+      .dash-grid { grid-template-columns: 1fr; }
+      .dash-recent,.dash-status,.dash-quick,.dash-chart { grid-column: 1; }
+    }
+
+    /* Status ring */
+    .status-list { display: flex; flex-direction: column; gap: 14px; }
+    .status-item {}
+    .status-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .status-lbl { font-size: 13px; font-weight: 600; color: var(--txt2); display: flex; align-items: center; gap: 7px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .status-count { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--txt); }
+    .status-pct { font-size: 11px; color: var(--txt3); margin-top: 3px; }
+
+    /* Activity feed */
+    .activity-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      animation: fadeUp .4s var(--ease) both;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .a-ava {
+      width: 36px; height: 36px; font-size: 13px;
+      flex-shrink: 0; border-radius: 50%;
+    }
+    .a-info { flex: 1; min-width: 0; }
+    .a-name { font-size: 13.5px; font-weight: 600; color: var(--txt); margin-bottom: 2px; }
+    .a-detail { font-size: 12px; color: var(--txt3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .a-right { flex-shrink: 0; text-align: right; }
+    .a-val { font-size: 13.5px; font-weight: 700; color: var(--emerald); }
+    .a-time { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+
+    /* Quick actions */
+    .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .qa-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 16px 14px;
+      cursor: pointer;
+      transition: all var(--t2) var(--ease);
+      text-align: left;
+      text-decoration: none;
+      display: block;
+    }
+    .qa-btn:hover {
+      background: var(--surface3);
+      border-color: var(--border2);
+      transform: translateY(-2px);
+    }
+    .qa-ico { font-size: 22px; margin-bottom: 8px; display: block; }
+    .qa-lbl { font-size: 12.5px; font-weight: 700; color: var(--txt); display: block; }
+    .qa-sub { font-size: 11px; color: var(--txt3); margin-top: 2px; display: block; }
+
+    /* Sparkline mini chart */
+    .sparkline-wrap {
+      height: 60px;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      padding: 0 2px;
+    }
+    .spark-bar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      background: linear-gradient(180deg, var(--brand) 0%, rgba(255,107,53,.3) 100%);
+      min-height: 4px;
+      transition: height .6s var(--ease);
+      cursor: default;
+    }
+    .spark-bar:hover { background: linear-gradient(180deg, #FF8C55 0%, rgba(255,107,53,.5) 100%); }
+
+    /* Live indicator */
+    .live-dot {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600;
+      color: var(--emerald);
+    }
+    .live-dot::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: .4; }
+    }
+
+    /* Faturamento total hero */
+    .fat-hero {
+      background: linear-gradient(135deg, rgba(255,107,53,.12) 0%, rgba(255,107,53,.03) 100%);
+      border: 1px solid rgba(255,107,53,.2);
+      border-radius: var(--r-lg);
+      padding: 22px 24px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+    .fat-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 24px; right: 24px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--brand), transparent);
+    }
+    .fat-lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,107,53,.7); margin-bottom: 6px; }
+    .fat-val { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--txt); letter-spacing: -1.5px; line-height: 1; }
+    .fat-sub { font-size: 12px; color: var(--txt3); margin-top: 6px; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="mob-overlay" id="mob-overlay"></div>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="tb-left">
+        <button class="topbar-icon-btn sidebar-toggle" id="sidebar-toggle">☰</button>
+        <div>
+          <div class="tb-page-title" id="page-title">Dashboard</div>
+          <div class="tb-crumb" id="dash-date"></div>
+        </div>
+      </div>
+      <div class="tb-right">
+        <span class="live-dot">Ao vivo</span>
+        <span class="tb-pill" id="topbar-user-name">—</span>
+        <button class="topbar-icon-btn" onclick="loadDash()" title="Atualizar dados">↺</button>
+      </div>
+    </header>
+
+    <div class="page">
+
+      <!-- Metrics -->
+      <div class="metrics" id="metrics">
+        <div class="mcard c-blue">
+          <div class="mcard-icon">👥</div>
+          <div class="mcard-val" id="m-clientes">—</div>
+          <div class="mcard-lbl">Total de Clientes</div>
+          <div class="mcard-sub" id="m-clientes-s">Cadastrados</div>
+        </div>
+        <div class="mcard c-brand">
+          <div class="mcard-icon">📦</div>
+          <div class="mcard-val" id="m-pedidos">—</div>
+          <div class="mcard-lbl">Total de Pedidos</div>
+          <div class="mcard-sub" id="m-pedidos-s">Este mês</div>
+        </div>
+        <div class="mcard c-green">
+          <div class="mcard-icon">💰</div>
+          <div class="mcard-val" id="m-fat">—</div>
+          <div class="mcard-lbl">Faturamento Entregue</div>
+          <div class="mcard-sub" id="m-fat-s">Confirmado</div>
+        </div>
+        <div class="mcard c-amber">
+          <div class="mcard-icon">🚚</div>
+          <div class="mcard-val" id="m-entrega">—</div>
+          <div class="mcard-lbl">Em Entrega Agora</div>
+          <div class="mcard-sub" id="m-entrega-s">Em rota</div>
+        </div>
+      </div>
+
+      <!-- Dashboard grid -->
+      <div class="dash-grid">
+
+        <!-- Recent orders -->
+        <div class="card dash-recent">
+          <div class="card-hd">
+            <div>
+              <div class="card-title">Últimos Pedidos</div>
+              <div class="card-sub">Atividade recente do sistema</div>
+            </div>
+            <a href="pedidos.html" class="btn btn-ghost btn-sm">Ver todos →</a>
+          </div>
+          <div id="recent-body">
+            <div class="loading-state"><div class="spinner spinner-lg" style="color:var(--brand)"></div><span>Carregando...</span></div>
+          </div>
+        </div>
+
+        <!-- Status sidebar -->
+        <div class="card dash-status">
+          <div class="card-hd">
+            <div>
+              <div class="card-title">Distribuição</div>
+              <div class="card-sub">Status atual dos pedidos</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- Fat hero -->
+            <div class="fat-hero">
+              <div class="fat-lbl">💰 Faturamento Total</div>
+              <div class="fat-val" id="fat-total">—</div>
+              <div class="fat-sub" id="fat-total-s">Todos os pedidos incluídos</div>
+            </div>
+
+            <div class="status-list" id="status-list">
+              <div class="loading-state" style="padding:20px"><div class="spinner" style="color:var(--brand)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card dash-quick">
+          <div class="card-hd">
+            <div class="card-title">Ações Rápidas</div>
+          </div>
+          <div class="card-body">
+            <div class="qa-grid">
+              <a href="pedidos.html?novo=1" class="qa-btn">
+                <span class="qa-ico">📦</span>
+                <span class="qa-lbl">Novo Pedido</span>
+                <span class="qa-sub">Registrar venda</span>
+              </a>
+              <a href="clientes.html?novo=1" class="qa-btn">
+                <span class="qa-ico">👤</span>
+                <span class="qa-lbl">Novo Cliente</span>
+                <span class="qa-sub">Cadastrar cliente</span>
+              </a>
+              <a href="pedidos.html?status=em_entrega" class="qa-btn">
+                <span class="qa-ico">🚚</span>
+                <span class="qa-lbl">Em Entrega</span>
+                <span class="qa-sub">Acompanhar rotas</span>
+              </a>
+              <a href="financeiro.html" class="qa-btn">
+                <span class="qa-ico">📊</span>
+                <span class="qa-lbl">Financeiro</span>
+                <span class="qa-sub">Ver relatório</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini chart -->
+        <div class="card dash-chart">
+          <div class="card-hd">
+            <div>
+              <div class="card-title">Pedidos por Status</div>
+              <div class="card-sub">Comparativo visual</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="sparkline-wrap" id="spark-wrap">
+              <div class="loading-state" style="width:100%;padding:0"><div class="spinner" style="color:var(--brand)"></div></div>
+            </div>
+            <div id="spark-legend" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-stack" id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="services/supabase.js"></script>
+<script>
+  let user = null;
+
+  async function init() {
+    user = await Components.initLayout('dashboard', 'Dashboard');
+    if (!user) return;
+
+    document.getElementById('topbar-user-name').textContent = user.name || user.email || '—';
+    document.getElementById('dash-date').textContent = new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
+
+    await loadDash();
+  }
+
+  async function loadDash() {
+    try {
+      const [totalClientes, metricas, ultimos] = await Promise.all([
+        ClientesService.total(),
+        PedidosService.metricas(),
+        PedidosService.ultimos(6)
+      ]);
+      renderMetrics(totalClientes, metricas);
+      renderRecent(ultimos);
+      renderStatus(metricas);
+      renderSpark(metricas);
+    } catch(err) {
+      Utils.toast('error', 'Erro ao carregar', err.message);
+    }
+  }
+
+  function renderMetrics(tc, m) {
+    document.getElementById('m-clientes').textContent = tc;
+    document.getElementById('m-clientes-s').textContent = `${tc} cadastrado${tc!==1?'s':''}`;
+    document.getElementById('m-pedidos').textContent = m.total;
+    document.getElementById('m-pedidos-s').textContent = `${m.doMes} este mês`;
+    document.getElementById('m-fat').textContent = Utils.formatCurrency(m.faturamento);
+    document.getElementById('m-fat-s').textContent = `${m.entregues} entregue${m.entregues!==1?'s':''}`;
+    document.getElementById('m-entrega').textContent = m.emEntrega;
+    document.getElementById('m-entrega-s').textContent = `${m.pendentes} pendente${m.pendentes!==1?'s':''}`;
+  }
+
+  function renderRecent(pedidos) {
+    const el = document.getElementById('recent-body');
+    if (!pedidos.length) {
+      el.innerHTML = `<div class="tbl-empty"><div class="tbl-empty-ico">📦</div><p>Nenhum pedido ainda.</p></div>`;
+      return;
+    }
+    el.innerHTML = `
+      <div style="padding:6px 22px 4px;">
+        ${pedidos.map((p,i) => `
+          <div class="activity-item" style="animation-delay:${i*.06}s">
+            <div class="avatar a-ava" style="width:36px;height:36px;font-size:13px;">${Utils.initials(p.clientes?.nome)}</div>
+            <div class="a-info">
+              <div class="a-name">${p.clientes?.nome || '—'}</div>
+              <div class="a-detail">
+                <span class="mono" style="font-size:11px;color:var(--txt3)">${p.numero}</span>
+                &nbsp;·&nbsp; ${p.tipo_produto||'P13'} × ${p.quantidade||1}
+                &nbsp;·&nbsp; ${Utils.statusBadge(p.status)}
+              </div>
+            </div>
+            <div class="a-right">
+              <div class="a-val">${Utils.formatCurrency(p.valor_total)}</div>
+              <div class="a-time">${Utils.formatDateShort(p.created_at)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
+  function renderStatus(m) {
+    const total = m.total || 1;
+    document.getElementById('fat-total').textContent = Utils.formatCurrency(m.faturamentoTotal);
+    document.getElementById('fat-total-s').textContent = `${m.total} pedido${m.total!==1?'s':''} no total`;
+
+    const items = [
+      { label:'Pendentes',  val:m.pendentes,  color:'var(--amber)',   pct:Math.round(m.pendentes/total*100) },
+      { label:'Em Entrega', val:m.emEntrega,  color:'var(--blue)',    pct:Math.round(m.emEntrega/total*100) },
+      { label:'Entregues',  val:m.entregues,  color:'var(--emerald)', pct:Math.round(m.entregues/total*100) },
+    ];
+
+    document.getElementById('status-list').innerHTML = items.map(it => `
+      <div class="status-item">
+        <div class="status-row">
+          <span class="status-lbl">
+            <span class="status-dot" style="background:${it.color};box-shadow:0 0 6px ${it.color}"></span>
+            ${it.label}
+          </span>
+          <span class="status-count">${it.val}</span>
+        </div>
+        <div class="prog">
+          <div class="prog-fill" style="width:${it.pct}%;background:${it.color};"></div>
+        </div>
+        <div class="status-pct">${it.pct}% do total</div>
+      </div>
+    `).join('');
+  }
+
+  function renderSpark(m) {
+    const wrap = document.getElementById('spark-wrap');
+    const legend = document.getElementById('spark-legend');
+    const data = [m.pendentes, m.emEntrega, m.entregues];
+    const labels = ['Pendentes','Em Entrega','Entregues'];
+    const colors = ['var(--amber)','var(--blue)','var(--emerald)'];
+    const max = Math.max(...data, 1);
+
+    wrap.innerHTML = data.map((v,i) => {
+      const pct = Math.round(v/max*100);
+      return `<div class="spark-bar" style="height:${pct}%;background:linear-gradient(180deg,${colors[i]} 0%,${colors[i]}33 100%);" title="${labels[i]}: ${v}"></div>`;
+    }).join('');
+
+    legend.innerHTML = data.map((v,i) => `
+      <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt3);">
+        <span style="width:8px;height:8px;border-radius:2px;background:${colors[i]};flex-shrink:0"></span>
+        ${labels[i]}
+      </span>`).join('');
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>GasMaster — Login</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>"/>
+  <link rel="stylesheet" href="css/login.css"/>
+</head>
+<body>
+
+<!-- ======== LEFT PANEL ======== -->
+<div class="left-panel">
+  <div class="lp-bg"></div>
+  <div class="lp-orb-main"></div>
+  <div class="lp-orb-blue"></div>
+  <div class="lp-orb-green"></div>
+  <div class="lp-grid"></div>
+  <div class="lp-noise"></div>
+
+  <!-- SVG decorative lines -->
+  <svg class="lp-lines" viewBox="0 0 700 700" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;">
+    <circle cx="350" cy="350" r="180" stroke="rgba(255,107,53,.06)" stroke-width="1"/>
+    <circle cx="350" cy="350" r="240" stroke="rgba(255,107,53,.04)" stroke-width="1"/>
+    <circle cx="350" cy="350" r="300" stroke="rgba(255,107,53,.025)" stroke-width="1"/>
+    <line x1="350" y1="0" x2="350" y2="700" stroke="rgba(255,255,255,.03)" stroke-width="1"/>
+    <line x1="0" y1="350" x2="700" y2="350" stroke="rgba(255,255,255,.03)" stroke-width="1"/>
+    <line x1="0" y1="0" x2="700" y2="700" stroke="rgba(255,255,255,.02)" stroke-width="1"/>
+    <line x1="700" y1="0" x2="0" y2="700" stroke="rgba(255,255,255,.02)" stroke-width="1"/>
+  </svg>
+
+  <!-- Center content -->
+  <div class="lp-center">
+    <div class="lp-icon">🔥</div>
+    <div class="lp-headline">Controle sua<br/><span>revenda de gás</span></div>
+    <p class="lp-desc">Sistema completo para pedidos, clientes e finanças — tudo em um painel moderno.</p>
+  </div>
+
+  <!-- Bottom stats (above gradient) -->
+  <div class="lp-stats" style="z-index:2;position:relative;">
+    <div class="lp-stat">
+      <span class="lp-stat-val">+500</span>
+      <span class="lp-stat-lbl">Revendas usam</span>
+    </div>
+    <div class="lp-stat">
+      <span class="lp-stat-val">99.9%</span>
+      <span class="lp-stat-lbl">Disponibilidade</span>
+    </div>
+    <div class="lp-stat">
+      <span class="lp-stat-val">∞</span>
+      <span class="lp-stat-lbl">Clientes & pedidos</span>
+    </div>
+  </div>
+</div>
+
+<!-- ======== RIGHT PANEL ======== -->
+<div class="right-panel">
+  <div class="auth-inner">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="auth-logo-mark">🔥</div>
+      <span class="auth-logo-name">GasMaster</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab on" id="tab-login" onclick="goTab('login')">Entrar</button>
+      <button class="auth-tab" id="tab-signup" onclick="goTab('signup')">Criar conta</button>
+    </div>
+
+    <!-- ===== LOGIN FORM ===== -->
+    <div class="a-form on" id="f-login">
+      <div class="auth-heading">Bem-vindo de volta</div>
+      <div class="auth-sub">Entre com sua conta para continuar</div>
+
+      <div class="a-error" id="login-err"><span>⚠</span><span id="login-err-msg"></span></div>
+
+      <div class="fg">
+        <label class="flabel">E-mail</label>
+        <div class="iw">
+          <span class="i-ico">✉</span>
+          <input type="email" class="finput" id="login-email" placeholder="seu@email.com" autocomplete="email"/>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flabel">Senha</label>
+        <div class="iw">
+          <span class="i-ico">🔒</span>
+          <input type="password" class="finput" id="login-pass" placeholder="••••••••" autocomplete="current-password"/>
+          <button class="i-eye" onclick="togglePwd('login-pass',this)" type="button">👁</button>
+        </div>
+      </div>
+      <span class="forgot" onclick="goTab('forgot')">Esqueci minha senha</span>
+
+      <button class="submit-btn" id="login-btn" onclick="doLogin()">
+        <span id="login-btn-txt">Entrar agora →</span>
+      </button>
+    </div>
+
+    <!-- ===== SIGNUP FORM ===== -->
+    <div class="a-form" id="f-signup">
+      <div class="auth-heading">Criar sua conta</div>
+      <div class="auth-sub">Preencha os dados para começar</div>
+
+      <div class="a-error" id="signup-err"><span>⚠</span><span id="signup-err-msg"></span></div>
+      <div class="a-success" id="signup-ok"><span>✓</span><span>Conta criada! Confirme seu e-mail.</span></div>
+
+      <div class="fg">
+        <label class="flabel">Nome completo</label>
+        <div class="iw">
+          <span class="i-ico">👤</span>
+          <input type="text" class="finput" id="signup-name" placeholder="João da Silva" autocomplete="name"/>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flabel">E-mail</label>
+        <div class="iw">
+          <span class="i-ico">✉</span>
+          <input type="email" class="finput" id="signup-email" placeholder="seu@email.com" autocomplete="email"/>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flabel">Senha</label>
+        <div class="iw">
+          <span class="i-ico">🔒</span>
+          <input type="password" class="finput" id="signup-pass" placeholder="Mín. 6 caracteres" autocomplete="new-password"/>
+          <button class="i-eye" onclick="togglePwd('signup-pass',this)" type="button">👁</button>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="flabel">Confirmar senha</label>
+        <div class="iw">
+          <span class="i-ico">🔒</span>
+          <input type="password" class="finput" id="signup-confirm" placeholder="Repita a senha"/>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="signup-btn" onclick="doSignup()">
+        <span id="signup-btn-txt">Criar minha conta →</span>
+      </button>
+    </div>
+
+    <!-- ===== FORGOT FORM ===== -->
+    <div class="a-form" id="f-forgot">
+      <div class="auth-heading">Recuperar senha</div>
+      <div class="auth-sub">Enviaremos um link para seu e-mail</div>
+
+      <div class="a-error" id="forgot-err"><span>⚠</span><span id="forgot-err-msg"></span></div>
+      <div class="a-success" id="forgot-ok"><span>✓</span><span>Link enviado! Verifique seu e-mail.</span></div>
+
+      <div class="fg">
+        <label class="flabel">E-mail cadastrado</label>
+        <div class="iw">
+          <span class="i-ico">✉</span>
+          <input type="email" class="finput" id="forgot-email" placeholder="seu@email.com"/>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="forgot-btn" onclick="doForgot()">
+        <span id="forgot-btn-txt">Enviar link →</span>
+      </button>
+
+      <div class="auth-divider"><span>ou</span></div>
+      <button class="submit-btn" style="background:rgba(255,255,255,.05);box-shadow:none;color:rgba(255,255,255,.5);" onclick="goTab('login')">
+        ← Voltar ao login
+      </button>
+    </div>
+
+    <div class="auth-footer">
+      © 2025 GasMaster · <a href="#">Termos</a> · <a href="#">Privacidade</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="services/supabase.js"></script>
+<script>
+  (async () => {
+    const s = await AuthService.getSession();
+    if (s) window.location.href = 'dashboard.html';
+  })();
+
+  function goTab(t) {
+    document.querySelectorAll('.a-form').forEach(f => f.classList.remove('on'));
+    document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('on'));
+    document.getElementById('f-' + t).classList.add('on');
+    const btn = document.getElementById('tab-' + t);
+    if (btn) btn.classList.add('on');
+    clearAlerts();
+  }
+  function clearAlerts() {
+    document.querySelectorAll('.a-error,.a-success').forEach(e => e.classList.remove('on'));
+  }
+  function showErr(pfx, msg) {
+    const b = document.getElementById(pfx + '-err');
+    document.getElementById(pfx + '-err-msg').textContent = msg;
+    b.classList.add('on');
+  }
+  function togglePwd(id, btn) {
+    const el = document.getElementById(id);
+    el.type = el.type === 'password' ? 'text' : 'password';
+    btn.textContent = el.type === 'password' ? '👁' : '🙈';
+  }
+  function setBusy(btnId, txtId, busy, label) {
+    const b = document.getElementById(btnId);
+    b.disabled = busy;
+    b.innerHTML = busy ? '<div class="spin"></div>' : `<span id="${txtId}">${label}</span>`;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const active = document.querySelector('.a-form.on')?.id;
+    if (active === 'f-login') doLogin();
+    else if (active === 'f-signup') doSignup();
+    else if (active === 'f-forgot') doForgot();
+  });
+
+  async function doLogin() {
+    clearAlerts();
+    const em = document.getElementById('login-email').value.trim();
+    const pw = document.getElementById('login-pass').value;
+    if (!em || !pw) { showErr('login','Preencha e-mail e senha.'); return; }
+    setBusy('login-btn','login-btn-txt',true);
+    try {
+      await AuthService.signIn(em, pw);
+      window.location.href = 'dashboard.html';
+    } catch(err) {
+      const m = err.message.includes('Invalid') ? 'E-mail ou senha incorretos.' :
+                err.message.includes('confirmed') ? 'Confirme seu e-mail primeiro.' : err.message;
+      showErr('login', m);
+      setBusy('login-btn','login-btn-txt',false,'Entrar agora →');
+    }
+  }
+
+  async function doSignup() {
+    clearAlerts();
+    const n = document.getElementById('signup-name').value.trim();
+    const em = document.getElementById('signup-email').value.trim();
+    const pw = document.getElementById('signup-pass').value;
+    const cf = document.getElementById('signup-confirm').value;
+    if (!n||!em||!pw||!cf) { showErr('signup','Preencha todos os campos.'); return; }
+    if (pw.length < 6) { showErr('signup','Senha deve ter mínimo 6 caracteres.'); return; }
+    if (pw !== cf) { showErr('signup','As senhas não coincidem.'); return; }
+    const btn = document.getElementById('signup-btn');
+    btn.disabled = true; btn.innerHTML = '<div class="spin"></div>';
+    try {
+      await AuthService.signUp(em, pw, n);
+      document.getElementById('signup-ok').classList.add('on');
+    } catch(err) {
+      showErr('signup', err.message.includes('already') ? 'E-mail já cadastrado.' : err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = '<span id="signup-btn-txt">Criar minha conta →</span>';
+    }
+  }
+
+  async function doForgot() {
+    clearAlerts();
+    const em = document.getElementById('forgot-email').value.trim();
+    if (!em) { showErr('forgot','Digite seu e-mail.'); return; }
+    const btn = document.getElementById('forgot-btn');
+    btn.disabled = true; btn.innerHTML = '<div class="spin"></div>';
+    try {
+      await AuthService.resetPassword(em);
+      document.getElementById('forgot-ok').classList.add('on');
+    } catch(err) {
+      showErr('forgot', err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = '<span id="forgot-btn-txt">Enviar link →</span>';
+    }
+  }
+</script>
+</body>
+</html>
