@@ -5,12 +5,54 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Dashboard — GasMaster</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>"/>
-  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="style.css"/>
   <style>
-    /* ---- Dashboard-specific ---- */
+    /* ---- Hero Welcome Bar ---- */
+    .welcome-hero {
+      background: linear-gradient(135deg, rgba(255,92,0,.12) 0%, rgba(59,139,255,.07) 100%);
+      border: 1px solid rgba(255,92,0,.2);
+      border-radius: 20px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 24px;
+      position: relative;
+      overflow: hidden;
+      animation: slideUp .5s cubic-bezier(.16,1,.3,1) both;
+    }
+    .welcome-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,92,0,.6), transparent);
+    }
+    .welcome-hero::after {
+      content: '';
+      position: absolute;
+      right: -60px; top: -60px;
+      width: 220px; height: 220px;
+      background: radial-gradient(circle, rgba(255,92,0,.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .wh-left {}
+    .wh-greeting {
+      font-size: 13px; font-weight: 600;
+      color: rgba(255,92,0,.8); letter-spacing: .5px;
+      text-transform: uppercase; margin-bottom: 5px;
+    }
+    .wh-title {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 28px; font-weight: 700;
+      color: var(--txt); letter-spacing: -1px;
+      line-height: 1.1;
+    }
+    .wh-sub { font-size: 13px; color: var(--txt3); margin-top: 6px; }
+    .wh-right { display: flex; gap: 10px; flex-shrink: 0; }
+
+    /* ---- Dashboard Grid ---- */
     .dash-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 340px;
+      grid-template-columns: 1fr 1fr 320px;
       grid-template-rows: auto auto;
       gap: 18px;
     }
@@ -20,10 +62,7 @@
     .dash-chart  { grid-column: 2 / 3; }
 
     @media (max-width: 1200px) {
-      .dash-grid {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto;
-      }
+      .dash-grid { grid-template-columns: 1fr 1fr; }
       .dash-recent { grid-column: 1 / 3; }
       .dash-status { grid-column: 1 / 3; grid-row: auto; }
       .dash-quick  { grid-column: 1 / 2; }
@@ -34,115 +73,130 @@
       .dash-recent,.dash-status,.dash-quick,.dash-chart { grid-column: 1; }
     }
 
-    /* Status ring */
-    .status-list { display: flex; flex-direction: column; gap: 14px; }
-    .status-item {}
-    .status-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .status-lbl { font-size: 13px; font-weight: 600; color: var(--txt2); display: flex; align-items: center; gap: 7px; }
+    /* ---- Status items ---- */
+    .status-list { display: flex; flex-direction: column; gap: 16px; }
+    .status-item { cursor: default; }
+    .status-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .status-lbl {
+      font-size: 13px; font-weight: 600; color: var(--txt2);
+      display: flex; align-items: center; gap: 8px;
+    }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .status-count { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--txt); }
-    .status-pct { font-size: 11px; color: var(--txt3); margin-top: 3px; }
+    .status-count {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 18px; font-weight: 700; color: var(--txt);
+    }
+    .status-pct { font-size: 11px; color: var(--txt3); margin-top: 4px; }
 
-    /* Activity feed */
+    /* ---- Activity feed ---- */
     .activity-item {
-      display: flex; align-items: flex-start; gap: 12px;
-      padding: 12px 0;
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 0;
       border-bottom: 1px solid var(--border);
-      animation: fadeUp .4s var(--ease) both;
+      animation: slideUp .4s cubic-bezier(.16,1,.3,1) both;
+      transition: background var(--t);
     }
+    .activity-item:hover { background: rgba(255,255,255,.02); margin: 0 -26px; padding: 14px 26px; }
     .activity-item:last-child { border-bottom: none; }
-    .a-ava {
-      width: 36px; height: 36px; font-size: 13px;
-      flex-shrink: 0; border-radius: 50%;
-    }
+    .a-ava { width: 40px; height: 40px; font-size: 14px; flex-shrink: 0; }
     .a-info { flex: 1; min-width: 0; }
-    .a-name { font-size: 13.5px; font-weight: 600; color: var(--txt); margin-bottom: 2px; }
-    .a-detail { font-size: 12px; color: var(--txt3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .a-name { font-size: 14px; font-weight: 700; color: var(--txt); margin-bottom: 3px; }
+    .a-detail { font-size: 12px; color: var(--txt3); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
     .a-right { flex-shrink: 0; text-align: right; }
-    .a-val { font-size: 13.5px; font-weight: 700; color: var(--emerald); }
-    .a-time { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+    .a-val { font-family: 'Clash Display', sans-serif; font-size: 15px; font-weight: 700; color: var(--emerald); }
+    .a-time { font-size: 11px; color: var(--txt3); margin-top: 3px; }
 
-    /* Quick actions */
+    /* ---- Quick actions ---- */
     .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .qa-btn {
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      padding: 16px 14px;
+      border-radius: 14px;
+      padding: 18px 16px;
       cursor: pointer;
-      transition: all var(--t2) var(--ease);
+      transition: all var(--t2) cubic-bezier(.16,1,.3,1);
       text-align: left;
       text-decoration: none;
       display: block;
-    }
-    .qa-btn:hover {
-      background: var(--surface3);
-      border-color: var(--border2);
-      transform: translateY(-2px);
-    }
-    .qa-ico { font-size: 22px; margin-bottom: 8px; display: block; }
-    .qa-lbl { font-size: 12.5px; font-weight: 700; color: var(--txt); display: block; }
-    .qa-sub { font-size: 11px; color: var(--txt3); margin-top: 2px; display: block; }
-
-    /* Sparkline mini chart */
-    .sparkline-wrap {
-      height: 60px;
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      padding: 0 2px;
-    }
-    .spark-bar {
-      flex: 1;
-      border-radius: 3px 3px 0 0;
-      background: linear-gradient(180deg, var(--brand) 0%, rgba(255,107,53,.3) 100%);
-      min-height: 4px;
-      transition: height .6s var(--ease);
-      cursor: default;
-    }
-    .spark-bar:hover { background: linear-gradient(180deg, #FF8C55 0%, rgba(255,107,53,.5) 100%); }
-
-    /* Live indicator */
-    .live-dot {
-      display: inline-flex; align-items: center; gap: 5px;
-      font-size: 11px; font-weight: 600;
-      color: var(--emerald);
-    }
-    .live-dot::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--emerald);
-      box-shadow: 0 0 8px var(--emerald);
-      animation: pulse 2s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%,100% { opacity: 1; }
-      50%      { opacity: .4; }
-    }
-
-    /* Faturamento total hero */
-    .fat-hero {
-      background: linear-gradient(135deg, rgba(255,107,53,.12) 0%, rgba(255,107,53,.03) 100%);
-      border: 1px solid rgba(255,107,53,.2);
-      border-radius: var(--r-lg);
-      padding: 22px 24px;
       position: relative;
       overflow: hidden;
-      margin-bottom: 18px;
+    }
+    .qa-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.04), transparent);
+      opacity: 0;
+      transition: opacity var(--t);
+    }
+    .qa-btn:hover { background: var(--surface3); border-color: var(--border2); transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
+    .qa-btn:hover::after { opacity: 1; }
+    .qa-ico { font-size: 24px; margin-bottom: 10px; display: block; }
+    .qa-lbl { font-size: 13px; font-weight: 700; color: var(--txt); display: block; margin-bottom: 2px; }
+    .qa-sub { font-size: 11px; color: var(--txt3); display: block; }
+
+    /* ---- Bar chart ---- */
+    .bar-wrap { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+    .bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .bar-fill {
+      width: 100%; border-radius: 6px 6px 0 0;
+      min-height: 6px;
+      transition: height .8s cubic-bezier(.16,1,.3,1);
+      position: relative;
+    }
+    .bar-lbl { font-size: 10px; color: var(--txt3); white-space: nowrap; font-weight: 600; }
+
+    /* ---- Fat hero ---- */
+    .fat-hero {
+      background: linear-gradient(135deg, rgba(255,92,0,.1) 0%, rgba(255,92,0,.03) 100%);
+      border: 1px solid rgba(255,92,0,.18);
+      border-radius: 14px;
+      padding: 20px 22px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
     }
     .fat-hero::before {
       content: '';
       position: absolute;
-      top: 0; left: 24px; right: 24px; height: 1px;
+      top: 0; left: 0; right: 0; height: 1px;
       background: linear-gradient(90deg, transparent, var(--brand), transparent);
+      opacity: .6;
     }
-    .fat-lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,107,53,.7); margin-bottom: 6px; }
-    .fat-val { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: var(--txt); letter-spacing: -1.5px; line-height: 1; }
-    .fat-sub { font-size: 12px; color: var(--txt3); margin-top: 6px; }
+    .fat-lbl {
+      font-size: 10.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: rgba(255,92,0,.7); margin-bottom: 6px;
+    }
+    .fat-val {
+      font-family: 'Clash Display', sans-serif;
+      font-size: 30px; font-weight: 700;
+      color: var(--txt); letter-spacing: -1.5px; line-height: 1;
+    }
+    .fat-sub { font-size: 12px; color: var(--txt3); margin-top: 5px; }
+
+    /* Live indicator */
+    .live-dot {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11.5px; font-weight: 600; color: var(--emerald);
+    }
+    .live-dot::before {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 10px var(--emerald);
+      animation: livePulse 2s ease-in-out infinite;
+    }
+    @keyframes livePulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .4; transform: scale(.8); }
+    }
   </style>
 </head>
 <body>
+<div id="page-transition" style="position:fixed;inset:0;background:var(--bg);z-index:9999;transition:opacity .4s;pointer-events:none;"></div>
+
 <div class="app-layout">
   <aside class="sidebar" id="sidebar"></aside>
   <div class="mob-overlay" id="mob-overlay"></div>
@@ -152,21 +206,34 @@
       <div class="tb-left">
         <button class="topbar-icon-btn sidebar-toggle" id="sidebar-toggle">☰</button>
         <div>
-          <div class="tb-page-title" id="page-title">Dashboard</div>
-          <div class="tb-crumb" id="dash-date"></div>
+          <div class="tb-page-title">Dashboard</div>
+          <div class="tb-crumb" id="dash-date">—</div>
         </div>
       </div>
       <div class="tb-right">
         <span class="live-dot">Ao vivo</span>
-        <span class="tb-pill" id="topbar-user-name">—</span>
-        <button class="topbar-icon-btn" onclick="loadDash()" title="Atualizar dados">↺</button>
+        <span class="tb-pill" id="topbar-user">—</span>
+        <button class="topbar-icon-btn" onclick="loadDash()" title="Atualizar">↺</button>
       </div>
     </header>
 
     <div class="page">
 
+      <!-- Welcome Hero -->
+      <div class="welcome-hero">
+        <div class="wh-left">
+          <div class="wh-greeting">☀️ Bom dia!</div>
+          <div class="wh-title" id="wh-name">Carregando...</div>
+          <div class="wh-sub" id="dash-date2">—</div>
+        </div>
+        <div class="wh-right">
+          <a href="pedidos.html?novo=1" class="btn btn-primary">＋ Novo Pedido</a>
+          <button class="btn btn-ghost" onclick="loadDash()">↺ Atualizar</button>
+        </div>
+      </div>
+
       <!-- Metrics -->
-      <div class="metrics" id="metrics">
+      <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
         <div class="mcard c-blue">
           <div class="mcard-icon">👥</div>
           <div class="mcard-val" id="m-clientes">—</div>
@@ -182,8 +249,8 @@
         <div class="mcard c-green">
           <div class="mcard-icon">💰</div>
           <div class="mcard-val" id="m-fat">—</div>
-          <div class="mcard-lbl">Faturamento Entregue</div>
-          <div class="mcard-sub" id="m-fat-s">Confirmado</div>
+          <div class="mcard-lbl">Faturamento</div>
+          <div class="mcard-sub" id="m-fat-s">Entregues</div>
         </div>
         <div class="mcard c-amber">
           <div class="mcard-icon">🚚</div>
@@ -193,11 +260,11 @@
         </div>
       </div>
 
-      <!-- Dashboard grid -->
+      <!-- Dashboard Grid -->
       <div class="dash-grid">
 
         <!-- Recent orders -->
-        <div class="card dash-recent">
+        <div class="card dash-recent" style="animation-delay:.1s">
           <div class="card-hd">
             <div>
               <div class="card-title">Últimos Pedidos</div>
@@ -205,13 +272,13 @@
             </div>
             <a href="pedidos.html" class="btn btn-ghost btn-sm">Ver todos →</a>
           </div>
-          <div id="recent-body">
+          <div class="card-body" id="recent-body">
             <div class="loading-state"><div class="spinner spinner-lg" style="color:var(--brand)"></div><span>Carregando...</span></div>
           </div>
         </div>
 
-        <!-- Status sidebar -->
-        <div class="card dash-status">
+        <!-- Status panel -->
+        <div class="card dash-status" style="animation-delay:.15s">
           <div class="card-hd">
             <div>
               <div class="card-title">Distribuição</div>
@@ -219,13 +286,11 @@
             </div>
           </div>
           <div class="card-body">
-            <!-- Fat hero -->
             <div class="fat-hero">
               <div class="fat-lbl">💰 Faturamento Total</div>
               <div class="fat-val" id="fat-total">—</div>
-              <div class="fat-sub" id="fat-total-s">Todos os pedidos incluídos</div>
+              <div class="fat-sub" id="fat-sub">Todos os pedidos</div>
             </div>
-
             <div class="status-list" id="status-list">
               <div class="loading-state" style="padding:20px"><div class="spinner" style="color:var(--brand)"></div></div>
             </div>
@@ -233,7 +298,7 @@
         </div>
 
         <!-- Quick actions -->
-        <div class="card dash-quick">
+        <div class="card dash-quick" style="animation-delay:.2s">
           <div class="card-hd">
             <div class="card-title">Ações Rápidas</div>
           </div>
@@ -247,35 +312,35 @@
               <a href="clientes.html?novo=1" class="qa-btn">
                 <span class="qa-ico">👤</span>
                 <span class="qa-lbl">Novo Cliente</span>
-                <span class="qa-sub">Cadastrar cliente</span>
+                <span class="qa-sub">Cadastrar</span>
               </a>
               <a href="pedidos.html?status=em_entrega" class="qa-btn">
                 <span class="qa-ico">🚚</span>
                 <span class="qa-lbl">Em Entrega</span>
-                <span class="qa-sub">Acompanhar rotas</span>
+                <span class="qa-sub">Rastrear rotas</span>
               </a>
               <a href="financeiro.html" class="qa-btn">
                 <span class="qa-ico">📊</span>
                 <span class="qa-lbl">Financeiro</span>
-                <span class="qa-sub">Ver relatório</span>
+                <span class="qa-sub">Relatório</span>
               </a>
             </div>
           </div>
         </div>
 
         <!-- Mini chart -->
-        <div class="card dash-chart">
+        <div class="card dash-chart" style="animation-delay:.25s">
           <div class="card-hd">
             <div>
-              <div class="card-title">Pedidos por Status</div>
+              <div class="card-title">Visão por Status</div>
               <div class="card-sub">Comparativo visual</div>
             </div>
           </div>
           <div class="card-body">
-            <div class="sparkline-wrap" id="spark-wrap">
-              <div class="loading-state" style="width:100%;padding:0"><div class="spinner" style="color:var(--brand)"></div></div>
+            <div class="bar-wrap" id="spark-wrap">
+              <div class="loading-state" style="width:100%;padding:0;min-height:80px"><div class="spinner" style="color:var(--brand)"></div></div>
             </div>
-            <div id="spark-legend" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;"></div>
+            <div id="spark-legend" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;"></div>
           </div>
         </div>
 
@@ -289,89 +354,116 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="services/supabase.js"></script>
 <script>
-  let user = null;
+  // Fade in page
+  window.addEventListener('load',()=>{
+    const t=document.getElementById('page-transition');
+    requestAnimationFrame(()=>{t.style.opacity='0';});
+  });
 
-  async function init() {
-    user = await Components.initLayout('dashboard', 'Dashboard');
-    if (!user) return;
+  // Animated greeting
+  function greeting(){
+    const h=new Date().getHours();
+    if(h<12) return '☀️ Bom dia';
+    if(h<18) return '🌤️ Boa tarde';
+    return '🌙 Boa noite';
+  }
 
-    document.getElementById('topbar-user-name').textContent = user.name || user.email || '—';
-    document.getElementById('dash-date').textContent = new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long'}).format(new Date());
+  let user=null;
 
+  async function init(){
+    user=await Components.initLayout('dashboard','Dashboard');
+    if(!user) return;
+    document.getElementById('topbar-user').textContent=user.name||user.email||'—';
+    document.getElementById('wh-name').textContent=`${greeting()}, ${(user.name||'').split(' ')[0]||'seja bem-vindo'}!`;
+    const d=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date());
+    document.getElementById('dash-date').textContent=d;
+    document.getElementById('dash-date2').textContent=`Hoje é ${d}`;
     await loadDash();
   }
 
-  async function loadDash() {
-    try {
-      const [totalClientes, metricas, ultimos] = await Promise.all([
+  async function loadDash(){
+    try{
+      const [tc,m,ultimos]=await Promise.all([
         ClientesService.total(),
         PedidosService.metricas(),
-        PedidosService.ultimos(6)
+        PedidosService.ultimos(7)
       ]);
-      renderMetrics(totalClientes, metricas);
+      renderMetrics(tc,m);
       renderRecent(ultimos);
-      renderStatus(metricas);
-      renderSpark(metricas);
-    } catch(err) {
-      Utils.toast('error', 'Erro ao carregar', err.message);
+      renderStatus(m);
+      renderSpark(m);
+    }catch(err){
+      Utils.toast('error','Erro ao carregar',err.message);
     }
   }
 
-  function renderMetrics(tc, m) {
-    document.getElementById('m-clientes').textContent = tc;
-    document.getElementById('m-clientes-s').textContent = `${tc} cadastrado${tc!==1?'s':''}`;
-    document.getElementById('m-pedidos').textContent = m.total;
-    document.getElementById('m-pedidos-s').textContent = `${m.doMes} este mês`;
-    document.getElementById('m-fat').textContent = Utils.formatCurrency(m.faturamento);
-    document.getElementById('m-fat-s').textContent = `${m.entregues} entregue${m.entregues!==1?'s':''}`;
-    document.getElementById('m-entrega').textContent = m.emEntrega;
-    document.getElementById('m-entrega-s').textContent = `${m.pendentes} pendente${m.pendentes!==1?'s':''}`;
+  function renderMetrics(tc,m){
+    const animate=(id,val,prefix='',suffix='')=>{
+      const el=document.getElementById(id);
+      const isNum=typeof val==='number';
+      if(isNum){
+        let cur=0;
+        const step=()=>{
+          cur=Math.min(cur+Math.ceil((val-cur)/8)||1,val);
+          el.textContent=prefix+cur.toLocaleString('pt-BR')+suffix;
+          if(cur<val) requestAnimationFrame(step);
+        };
+        step();
+      } else { el.textContent=val; }
+    };
+    animate('m-clientes',tc);
+    document.getElementById('m-clientes-s').textContent=`${tc} cadastrado${tc!==1?'s':''}`;
+    animate('m-pedidos',m.total);
+    document.getElementById('m-pedidos-s').textContent=`${m.doMes} este mês`;
+    document.getElementById('m-fat').textContent=Utils.formatCurrency(m.faturamento);
+    document.getElementById('m-fat-s').textContent=`${m.entregues} entregue${m.entregues!==1?'s':''}`;
+    animate('m-entrega',m.emEntrega);
+    document.getElementById('m-entrega-s').textContent=`${m.pendentes} pendente${m.pendentes!==1?'s':''}`;
   }
 
-  function renderRecent(pedidos) {
-    const el = document.getElementById('recent-body');
-    if (!pedidos.length) {
-      el.innerHTML = `<div class="tbl-empty"><div class="tbl-empty-ico">📦</div><p>Nenhum pedido ainda.</p></div>`;
+  function renderRecent(pedidos){
+    const el=document.getElementById('recent-body');
+    if(!pedidos.length){
+      el.innerHTML=`<div class="tbl-empty"><span class="tbl-empty-ico">📦</span><p>Nenhum pedido ainda.</p><a href="pedidos.html?novo=1" class="btn btn-primary btn-sm" style="margin-top:14px">Criar primeiro pedido</a></div>`;
       return;
     }
-    el.innerHTML = `
-      <div style="padding:6px 22px 4px;">
-        ${pedidos.map((p,i) => `
-          <div class="activity-item" style="animation-delay:${i*.06}s">
-            <div class="avatar a-ava" style="width:36px;height:36px;font-size:13px;">${Utils.initials(p.clientes?.nome)}</div>
-            <div class="a-info">
-              <div class="a-name">${p.clientes?.nome || '—'}</div>
-              <div class="a-detail">
-                <span class="mono" style="font-size:11px;color:var(--txt3)">${p.numero}</span>
-                &nbsp;·&nbsp; ${p.tipo_produto||'P13'} × ${p.quantidade||1}
-                &nbsp;·&nbsp; ${Utils.statusBadge(p.status)}
-              </div>
-            </div>
-            <div class="a-right">
-              <div class="a-val">${Utils.formatCurrency(p.valor_total)}</div>
-              <div class="a-time">${Utils.formatDateShort(p.created_at)}</div>
-            </div>
+    el.innerHTML=pedidos.map((p,i)=>`
+      <div class="activity-item" style="animation-delay:${i*.06}s">
+        <div class="avatar a-ava" style="width:40px;height:40px;font-size:13px">${Utils.initials(p.clientes?.nome)}</div>
+        <div class="a-info">
+          <div class="a-name">${p.clientes?.nome||'—'}</div>
+          <div class="a-detail">
+            <span class="mono" style="font-size:11px;color:var(--txt3)">${p.numero}</span>
+            <span style="color:var(--txt4)">·</span>
+            <span>${p.tipo_produto||'P13'} × ${p.quantidade||1}</span>
+            <span style="color:var(--txt4)">·</span>
+            ${Utils.statusBadge(p.status)}
           </div>
-        `).join('')}
-      </div>`;
+        </div>
+        <div class="a-right">
+          <div class="a-val">${Utils.formatCurrency(p.valor_total)}</div>
+          <div class="a-time">${Utils.formatDateShort(p.created_at)}</div>
+        </div>
+      </div>
+    `).join('');
   }
 
-  function renderStatus(m) {
-    const total = m.total || 1;
-    document.getElementById('fat-total').textContent = Utils.formatCurrency(m.faturamentoTotal);
-    document.getElementById('fat-total-s').textContent = `${m.total} pedido${m.total!==1?'s':''} no total`;
+  function renderStatus(m){
+    const total=m.total||1;
+    document.getElementById('fat-total').textContent=Utils.formatCurrency(m.faturamentoTotal);
+    document.getElementById('fat-sub').textContent=`${m.total} pedido${m.total!==1?'s':''} no total`;
 
-    const items = [
-      { label:'Pendentes',  val:m.pendentes,  color:'var(--amber)',   pct:Math.round(m.pendentes/total*100) },
-      { label:'Em Entrega', val:m.emEntrega,  color:'var(--blue)',    pct:Math.round(m.emEntrega/total*100) },
-      { label:'Entregues',  val:m.entregues,  color:'var(--emerald)', pct:Math.round(m.entregues/total*100) },
+    const items=[
+      {label:'Pendentes',val:m.pendentes,color:'var(--amber)',pct:Math.round(m.pendentes/total*100)},
+      {label:'Em Entrega',val:m.emEntrega,color:'var(--blue)',pct:Math.round(m.emEntrega/total*100)},
+      {label:'Entregues',val:m.entregues,color:'var(--emerald)',pct:Math.round(m.entregues/total*100)},
     ];
 
-    document.getElementById('status-list').innerHTML = items.map(it => `
+    document.getElementById('status-list').innerHTML=items.map(it=>`
       <div class="status-item">
         <div class="status-row">
           <span class="status-lbl">
-            <span class="status-dot" style="background:${it.color};box-shadow:0 0 6px ${it.color}"></span>
+            <span class="status-dot" style="background:${it.color};box-shadow:0 0 8px ${it.color}"></span>
             ${it.label}
           </span>
           <span class="status-count">${it.val}</span>
@@ -384,25 +476,40 @@
     `).join('');
   }
 
-  function renderSpark(m) {
-    const wrap = document.getElementById('spark-wrap');
-    const legend = document.getElementById('spark-legend');
-    const data = [m.pendentes, m.emEntrega, m.entregues];
-    const labels = ['Pendentes','Em Entrega','Entregues'];
-    const colors = ['var(--amber)','var(--blue)','var(--emerald)'];
-    const max = Math.max(...data, 1);
-
-    wrap.innerHTML = data.map((v,i) => {
-      const pct = Math.round(v/max*100);
-      return `<div class="spark-bar" style="height:${pct}%;background:linear-gradient(180deg,${colors[i]} 0%,${colors[i]}33 100%);" title="${labels[i]}: ${v}"></div>`;
+  function renderSpark(m){
+    const wrap=document.getElementById('spark-wrap');
+    const legend=document.getElementById('spark-legend');
+    const data=[
+      {v:m.pendentes,label:'Pendentes',color:'var(--amber)'},
+      {v:m.emEntrega,label:'Em Entrega',color:'var(--blue)'},
+      {v:m.entregues,label:'Entregues',color:'var(--emerald)'},
+    ];
+    const max=Math.max(...data.map(d=>d.v),1);
+    wrap.innerHTML=data.map(d=>{
+      const pct=Math.round(d.v/max*100)||4;
+      return `<div class="bar-item" title="${d.label}: ${d.v}">
+        <div class="bar-fill" style="height:${pct}%;background:linear-gradient(180deg,${d.color} 0%,${d.color}30 100%);box-shadow:0 0 14px ${d.color}40;"></div>
+        <div class="bar-lbl">${d.v}</div>
+      </div>`;
     }).join('');
-
-    legend.innerHTML = data.map((v,i) => `
-      <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt3);">
-        <span style="width:8px;height:8px;border-radius:2px;background:${colors[i]};flex-shrink:0"></span>
-        ${labels[i]}
+    legend.innerHTML=data.map(d=>`
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt3);font-weight:600;">
+        <span style="width:10px;height:10px;border-radius:3px;background:${d.color};box-shadow:0 0 6px ${d.color}60;flex-shrink:0"></span>
+        ${d.label}
       </span>`).join('');
   }
+
+  // Nav links transition
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a[href]');
+    if(!a||a.target==='_blank'||a.href===location.href) return;
+    if(a.href.startsWith(location.origin)){
+      e.preventDefault();
+      const t=document.getElementById('page-transition');
+      t.style.opacity='1';
+      setTimeout(()=>location.href=a.href,280);
+    }
+  });
 
   init();
 </script>

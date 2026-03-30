@@ -5,23 +5,24 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Clientes — GasMaster</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>"/>
-  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="style.css"/>
   <style>
-    /* Client card grid view */
+    /* ---- Client card grid ---- */
     .clients-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 14px;
-      padding: 20px 22px;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 16px;
+      padding: 22px 26px;
     }
+
     .client-card {
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      padding: 18px;
-      transition: all var(--t2) var(--ease);
+      border-radius: 18px;
+      padding: 20px;
+      transition: all var(--t2) cubic-bezier(.16,1,.3,1);
       cursor: default;
-      animation: fadeUp .4s var(--ease) both;
+      animation: slideUp .5s cubic-bezier(.16,1,.3,1) both;
       position: relative;
       overflow: hidden;
     }
@@ -29,45 +30,63 @@
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, var(--brand), transparent);
+      background: linear-gradient(90deg, var(--brand), var(--brand2), transparent);
+      opacity: 0;
+      transition: opacity var(--t2);
+    }
+    .client-card::after {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 150px; height: 150px;
+      background: radial-gradient(circle, rgba(255,92,0,.06) 0%, transparent 70%);
+      pointer-events: none;
       opacity: 0;
       transition: opacity var(--t2);
     }
     .client-card:hover {
       border-color: var(--border2);
       background: var(--surface3);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,.5);
     }
     .client-card:hover::before { opacity: 1; }
+    .client-card:hover::after { opacity: 1; }
 
-    .cc-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-    .cc-ava { width: 44px; height: 44px; font-size: 15px; }
-    .cc-name { font-size: 14px; font-weight: 700; color: var(--txt); letter-spacing: -.2px; }
-    .cc-doc { font-size: 11.5px; color: var(--txt3); margin-top: 1px; }
+    .cc-top { display: flex; align-items: center; gap: 13px; margin-bottom: 16px; }
+    .cc-ava { width: 48px; height: 48px; font-size: 16px; box-shadow: 0 4px 14px rgba(255,92,0,.25); }
+    .cc-name { font-size: 15px; font-weight: 700; color: var(--txt); letter-spacing: -.3px; }
+    .cc-doc { font-size: 11.5px; color: var(--txt3); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
 
-    .cc-info { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-    .cc-row { display: flex; align-items: flex-start; gap: 7px; font-size: 12.5px; color: var(--txt2); }
-    .cc-row-ico { font-size: 12px; margin-top: 1px; flex-shrink: 0; opacity: .6; }
+    .cc-info { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+    .cc-row { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: var(--txt2); }
+    .cc-row-ico { font-size: 13px; margin-top: 1px; flex-shrink: 0; }
     .cc-row-txt { flex: 1; line-height: 1.4; }
 
-    .cc-actions { display: flex; gap: 6px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .cc-actions {
+      display: flex; gap: 7px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
 
-    /* Table vs grid toggle */
+    /* ---- View toggle ---- */
     .view-toggle { display: flex; gap: 4px; }
     .vt-btn {
-      width: 30px; height: 30px;
-      border-radius: 6px;
+      width: 34px; height: 34px;
+      border-radius: 9px;
       border: 1px solid var(--border);
       background: var(--surface2);
-      color: var(--txt3); font-size: 13px;
+      color: var(--txt3); font-size: 14px;
       display: flex; align-items: center; justify-content: center;
-      transition: all var(--t); cursor: pointer;
+      transition: all var(--t2) cubic-bezier(.16,1,.3,1);
+      cursor: pointer;
     }
-    .vt-btn.on { background: var(--brand-dim); border-color: rgba(255,107,53,.3); color: var(--brand); }
+    .vt-btn:hover { background: var(--surface3); color: var(--txt); transform: scale(1.05); }
+    .vt-btn.on { background: var(--brand-dim); border-color: var(--border-brand); color: var(--brand); box-shadow: 0 4px 14px rgba(255,92,0,.2); }
   </style>
 </head>
 <body>
+<div id="pt" style="position:fixed;inset:0;background:var(--bg);z-index:9999;transition:opacity .4s;pointer-events:none;"></div>
 <div class="app-layout">
   <aside class="sidebar" id="sidebar"></aside>
   <div class="mob-overlay" id="mob-overlay"></div>
@@ -91,26 +110,12 @@
     </header>
 
     <div class="page">
-      <!-- Metrics -->
-      <div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
-        <div class="mcard c-blue">
-          <div class="mcard-icon">👥</div>
-          <div class="mcard-val" id="mc-total">—</div>
-          <div class="mcard-lbl">Total Cadastrados</div>
-        </div>
-        <div class="mcard c-green">
-          <div class="mcard-icon">📦</div>
-          <div class="mcard-val" id="mc-ativos">—</div>
-          <div class="mcard-lbl">Com Pedidos</div>
-        </div>
-        <div class="mcard c-brand">
-          <div class="mcard-icon">✨</div>
-          <div class="mcard-val" id="mc-novos">—</div>
-          <div class="mcard-lbl">Novos Este Mês</div>
-        </div>
+      <div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:22px;">
+        <div class="mcard c-blue"><div class="mcard-icon">👥</div><div class="mcard-val" id="mc-total">—</div><div class="mcard-lbl">Total Cadastrados</div></div>
+        <div class="mcard c-green"><div class="mcard-icon">📦</div><div class="mcard-val" id="mc-ativos">—</div><div class="mcard-lbl">Com Pedidos</div></div>
+        <div class="mcard c-brand"><div class="mcard-icon">✨</div><div class="mcard-val" id="mc-novos">—</div><div class="mcard-lbl">Novos Este Mês</div></div>
       </div>
 
-      <!-- Card -->
       <div class="card">
         <div class="card-hd">
           <div>
@@ -118,21 +123,16 @@
             <div class="card-sub" id="clients-count">Carregando...</div>
           </div>
         </div>
-
-        <!-- Search -->
         <div class="search-row">
           <div class="search-wrap">
             <span class="search-ico">🔍</span>
             <input type="text" class="finput" id="search" placeholder="Buscar nome, telefone, endereço..." oninput="onSearch(this.value)"/>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="load(true)">↺ Atualizar</button>
+          <button class="btn btn-ghost btn-sm" onclick="load(true)">↺</button>
         </div>
-
-        <!-- Content -->
         <div id="content">
           <div class="loading-state"><div class="spinner spinner-lg" style="color:var(--brand)"></div><span>Carregando clientes...</span></div>
         </div>
-
         <div class="pager" id="pager" style="display:none">
           <div class="pager-info" id="pager-info"></div>
           <div class="pager-btns" id="pager-btns"></div>
@@ -154,19 +154,17 @@
     </div>
     <div class="modal-body">
       <div class="alert alert-error" id="m-err"><span>⚠</span><span id="m-err-msg"></span></div>
-
       <input type="hidden" id="c-id"/>
-
       <div class="fg">
         <label class="flabel">Nome completo <span class="req">*</span></label>
         <input class="finput" id="c-nome" placeholder="João da Silva"/>
-        <div class="ferror" id="err-nome">Nome é obrigatório</div>
+        <div class="ferror">Nome é obrigatório</div>
       </div>
       <div class="frow">
         <div class="fg">
           <label class="flabel">Telefone / WhatsApp <span class="req">*</span></label>
           <input class="finput" id="c-tel" placeholder="(49) 99999-9999" oninput="maskPhone(this)"/>
-          <div class="ferror" id="err-tel">Telefone obrigatório</div>
+          <div class="ferror">Telefone obrigatório</div>
         </div>
         <div class="fg">
           <label class="flabel">CPF / CNPJ</label>
@@ -176,7 +174,7 @@
       <div class="fg">
         <label class="flabel">Endereço <span class="req">*</span></label>
         <input class="finput" id="c-end" placeholder="Rua, número, bairro, cidade"/>
-        <div class="ferror" id="err-end">Endereço obrigatório</div>
+        <div class="ferror">Endereço obrigatório</div>
       </div>
       <div class="fg">
         <label class="flabel">Ponto de referência</label>
@@ -198,7 +196,7 @@
 
 <!-- MODAL DETALHE -->
 <div class="modal-bg" id="modal-detail">
-  <div class="modal" style="max-width:560px">
+  <div class="modal" style="max-width:580px">
     <div class="modal-hd">
       <div>
         <div class="modal-title">Detalhes do Cliente</div>
@@ -217,53 +215,58 @@
 </div>
 
 <div class="toast-stack" id="toast-container"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="services/supabase.js"></script>
 <script>
-  let pg = 1, total_pg = 1, q = '', editId = null, viewMode = 'card';
-  const PER = 18;
+  window.addEventListener('load',()=>{const t=document.getElementById('pt');requestAnimationFrame(()=>{t.style.opacity='0';});});
 
-  async function init() {
+  let pg=1,total_pg=1,q='',editId=null,viewMode='card';
+  const PER=18;
+
+  async function init(){
     await Components.initLayout('clientes','Clientes');
     load();
     loadMetrics();
-    const p = new URLSearchParams(window.location.search);
-    if (p.get('novo')==='1') openModal();
+    const p=new URLSearchParams(window.location.search);
+    if(p.get('novo')==='1') openModal();
   }
 
-  async function loadMetrics() {
-    try {
-      const {data,count} = await ClientesService.listar({limit:9999});
-      document.getElementById('mc-total').textContent = count;
-      const ini = new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString();
-      document.getElementById('mc-novos').textContent = data.filter(c=>c.created_at>=ini).length;
-      document.getElementById('mc-ativos').textContent = '—';
-    } catch(e){}
+  async function loadMetrics(){
+    try{
+      const {data,count}=await ClientesService.listar({limit:9999});
+      const el=(id,v)=>{
+        const e=document.getElementById(id);
+        let c=0;const step=()=>{c=Math.min(c+Math.ceil((v-c)/8)||1,v);e.textContent=c;if(c<v)requestAnimationFrame(step);};step();
+      };
+      el('mc-total',count);
+      const ini=new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString();
+      el('mc-novos',data.filter(c=>c.created_at>=ini).length);
+      document.getElementById('mc-ativos').textContent='—';
+    }catch(e){}
   }
 
-  async function load(reset=false) {
+  async function load(reset=false){
     if(reset) pg=1;
-    const el = document.getElementById('content');
-    if(pg===1) el.innerHTML = `<div class="loading-state"><div class="spinner spinner-lg" style="color:var(--brand)"></div><span>Carregando...</span></div>`;
-    try {
-      const r = await ClientesService.listar({search:q,page:pg,limit:PER});
-      total_pg = r.totalPages||1;
-      document.getElementById('clients-count').textContent = `${r.count} cliente${r.count!==1?'s':''} encontrado${r.count!==1?'s':''}`;
-      viewMode==='card' ? renderCards(r.data) : renderTable(r.data);
+    const el=document.getElementById('content');
+    if(pg===1) el.innerHTML=`<div class="loading-state"><div class="spinner spinner-lg" style="color:var(--brand)"></div><span>Carregando...</span></div>`;
+    try{
+      const r=await ClientesService.listar({search:q,page:pg,limit:PER});
+      total_pg=r.totalPages||1;
+      document.getElementById('clients-count').textContent=`${r.count} cliente${r.count!==1?'s':''} encontrado${r.count!==1?'s':''}`;
+      viewMode==='card'?renderCards(r.data):renderTable(r.data);
       renderPager(r.count);
-    } catch(err) {
-      el.innerHTML = `<div class="tbl-empty"><div class="tbl-empty-ico">❌</div><p>${err.message}</p></div>`;
+    }catch(err){
+      el.innerHTML=`<div class="tbl-empty"><span class="tbl-empty-ico">❌</span><p>${err.message}</p></div>`;
     }
   }
 
-  function renderCards(clients) {
-    const el = document.getElementById('content');
-    if(!clients.length) {
-      el.innerHTML = `<div class="tbl-empty"><div class="tbl-empty-ico">👥</div><p>${q?'Nenhum cliente encontrado.':'Nenhum cliente cadastrado ainda.'}</p><button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="openModal()">Cadastrar primeiro cliente</button></div>`;
+  function renderCards(clients){
+    const el=document.getElementById('content');
+    if(!clients.length){
+      el.innerHTML=`<div class="tbl-empty"><span class="tbl-empty-ico">👥</span><p>${q?'Nenhum cliente encontrado.':'Nenhum cliente cadastrado ainda.'}</p><button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="openModal()">Cadastrar primeiro cliente</button></div>`;
       return;
     }
-    el.innerHTML = `<div class="clients-grid">${clients.map((c,i)=>`
+    el.innerHTML=`<div class="clients-grid">${clients.map((c,i)=>`
       <div class="client-card" style="animation-delay:${i*.04}s">
         <div class="cc-top">
           <div class="avatar cc-ava">${Utils.initials(c.nome)}</div>
@@ -279,6 +282,7 @@
         </div>
         <div class="cc-actions">
           <a href="https://wa.me/55${c.telefone?.replace(/\D/g,'')||''}" target="_blank" class="btn btn-success btn-sm" style="flex:1;justify-content:center;">💬 WhatsApp</a>
+          <button class="btn btn-ghost btn-sm" onclick="detail('${c.id}')" title="Ver detalhes">👁</button>
           <button class="btn btn-ghost btn-sm" onclick="openModal('${c.id}')" title="Editar">✏</button>
           <button class="btn btn-danger btn-sm" onclick="del('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑</button>
         </div>
@@ -286,21 +290,18 @@
     `).join('')}</div>`;
   }
 
-  function renderTable(clients) {
-    const el = document.getElementById('content');
-    if(!clients.length){
-      el.innerHTML=`<div class="tbl-empty"><div class="tbl-empty-ico">👥</div><p>Nenhum cliente.</p></div>`;
-      return;
-    }
+  function renderTable(clients){
+    const el=document.getElementById('content');
+    if(!clients.length){el.innerHTML=`<div class="tbl-empty"><span class="tbl-empty-ico">👥</span><p>Nenhum cliente.</p></div>`;return;}
     el.innerHTML=`<div class="tbl-wrap"><table>
       <thead><tr><th>Cliente</th><th>Telefone</th><th>Endereço</th><th>Cadastro</th><th>Ações</th></tr></thead>
-      <tbody>${clients.map(c=>`<tr>
-        <td><div style="display:flex;align-items:center;gap:10px">
-          <div class="avatar" style="width:32px;height:32px;font-size:12px">${Utils.initials(c.nome)}</div>
-          <div><div style="font-weight:600">${c.nome}</div>${c.documento?`<div style="font-size:11px;color:var(--txt3)">${c.documento}</div>`:''}</div>
+      <tbody>${clients.map((c,i)=>`<tr style="animation:slideUp .4s cubic-bezier(.16,1,.3,1) ${i*.03}s both">
+        <td><div style="display:flex;align-items:center;gap:11px">
+          <div class="avatar" style="width:36px;height:36px;font-size:13px">${Utils.initials(c.nome)}</div>
+          <div><div style="font-weight:700">${c.nome}</div>${c.documento?`<div style="font-size:11px;color:var(--txt3);font-family:'JetBrains Mono',monospace">${c.documento}</div>`:''}</div>
         </div></td>
-        <td><a href="https://wa.me/55${c.telefone?.replace(/\D/g,'')||''}" target="_blank" style="color:var(--emerald);font-size:13px">📱 ${Utils.formatPhone(c.telefone)}</a></td>
-        <td style="font-size:13px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.endereco||'—'}</td>
+        <td><a href="https://wa.me/55${c.telefone?.replace(/\D/g,'')||''}" target="_blank" style="color:var(--emerald);font-size:13px;font-weight:600">📱 ${Utils.formatPhone(c.telefone)}</a></td>
+        <td style="font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.endereco||'—'}</td>
         <td style="font-size:12px;color:var(--txt3)">${Utils.formatDateShort(c.created_at)}</td>
         <td><div class="td-actions">
           <button class="btn btn-ghost btn-sm" onclick="detail('${c.id}')">👁</button>
@@ -311,40 +312,38 @@
     </table></div>`;
   }
 
-  function renderPager(count) {
-    const pg_el = document.getElementById('pager');
+  function renderPager(count){
+    const pg_el=document.getElementById('pager');
     if(count<=PER){pg_el.style.display='none';return;}
     pg_el.style.display='flex';
-    const from=(pg-1)*PER+1, to=Math.min(pg*PER,count);
+    const from=(pg-1)*PER+1,to=Math.min(pg*PER,count);
     document.getElementById('pager-info').textContent=`${from}–${to} de ${count}`;
     let h=`<button class="pager-btn" onclick="goPage(${pg-1})" ${pg===1?'disabled':''}>‹</button>`;
     for(let i=1;i<=total_pg;i++){
       if(i===1||i===total_pg||Math.abs(i-pg)<=1) h+=`<button class="pager-btn ${i===pg?'on':''}" onclick="goPage(${i})">${i}</button>`;
-      else if(Math.abs(i-pg)===2) h+=`<span style="color:var(--txt3);padding:0 2px">…</span>`;
+      else if(Math.abs(i-pg)===2) h+=`<span style="color:var(--txt3);padding:0 3px;line-height:32px">…</span>`;
     }
     h+=`<button class="pager-btn" onclick="goPage(${pg+1})" ${pg===total_pg?'disabled':''}>›</button>`;
     document.getElementById('pager-btns').innerHTML=h;
   }
 
   function goPage(p){if(p<1||p>total_pg)return;pg=p;load();window.scrollTo({top:0,behavior:'smooth'});}
+  const onSearch=Utils.debounce(v=>{q=v;load(true);},400);
 
-  const onSearch = Utils.debounce(v=>{q=v;load(true);},400);
-
-  function setView(v) {
+  function setView(v){
     viewMode=v;
     document.getElementById('vt-card').classList.toggle('on',v==='card');
     document.getElementById('vt-table').classList.toggle('on',v==='table');
     load();
   }
 
-  // ---- MODAL ----
-  async function openModal(id=null) {
+  async function openModal(id=null){
     editId=id;
     clearForm();
     document.getElementById('modal-title').textContent=id?'Editar Cliente':'Novo Cliente';
     document.getElementById('save-txt').textContent=id?'💾 Atualizar':'💾 Salvar';
     if(id){
-      try {
+      try{
         const c=await ClientesService.buscarPorId(id);
         document.getElementById('c-id').value=c.id;
         document.getElementById('c-nome').value=c.nome||'';
@@ -353,7 +352,7 @@
         document.getElementById('c-end').value=c.endereco||'';
         document.getElementById('c-ref').value=c.referencia||'';
         document.getElementById('c-obs').value=c.observacoes||'';
-      } catch(e){Utils.toast('error','Erro',e.message);return;}
+      }catch(e){Utils.toast('error','Erro',e.message);return;}
     }
     openMod('modal-client');
   }
@@ -366,7 +365,7 @@
 
   async function save(){
     let ok=true;
-    [['c-nome','err-nome'],['c-tel','err-tel'],['c-end','err-end']].forEach(([f])=>{
+    ['c-nome','c-tel','c-end'].forEach(f=>{
       const e=document.getElementById(f);
       if(!e.value.trim()){e.classList.add('invalid');ok=false;}
       else e.classList.remove('invalid');
@@ -382,56 +381,66 @@
       referencia:document.getElementById('c-ref').value.trim()||null,
       observacoes:document.getElementById('c-obs').value.trim()||null
     };
-    try {
+    try{
       if(editId) await ClientesService.atualizar(editId,p); else await ClientesService.criar(p);
-      Utils.toast('success',editId?'Cliente atualizado!':'Cliente cadastrado!',p.nome);
+      Utils.toast('success',editId?'Cliente atualizado! ✨':'Cliente cadastrado! 🎉',p.nome);
       closeModal();load(true);loadMetrics();
-    } catch(err){
+    }catch(err){
       const e=document.getElementById('m-err');
       document.getElementById('m-err-msg').textContent=err.message;
       e.classList.add('show');
-    } finally {
+    }finally{
       btn.disabled=false;btn.innerHTML=`<span id="save-txt">${editId?'💾 Atualizar':'💾 Salvar'}</span>`;
     }
   }
 
-  // ---- DETAIL ----
   async function detail(id){
     openMod('modal-detail');
     document.getElementById('detail-body').innerHTML='<div class="loading-state"><div class="spinner" style="color:var(--brand)"></div></div>';
-    try {
+    try{
       const c=await ClientesService.buscarPorId(id);
       const {data:peds,count}=await PedidosService.listar({clienteId:id,limit:5});
       const fat=peds.filter(p=>p.status==='entregue').reduce((a,p)=>a+(p.valor_total||0),0);
       document.getElementById('detail-name').textContent=c.nome;
       document.getElementById('detail-body').innerHTML=`
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:14px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);margin-bottom:4px">Pedidos</div>
-            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--blue)">${count}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);margin-bottom:6px">Pedidos</div>
+            <div style="font-family:'Clash Display',sans-serif;font-size:28px;font-weight:700;color:var(--blue)">${count}</div>
           </div>
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:14px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);margin-bottom:4px">Faturado</div>
-            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--emerald)">${Utils.formatCurrency(fat)}</div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);margin-bottom:6px">Faturado</div>
+            <div style="font-family:'Clash Display',sans-serif;font-size:24px;font-weight:700;color:var(--emerald)">${Utils.formatCurrency(fat)}</div>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
-          <div style="display:flex;gap:10px"><span style="font-size:14px">📱</span><div><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3)">Telefone</div><div style="font-size:13.5px;margin-top:1px">${Utils.formatPhone(c.telefone)}</div></div></div>
-          <div style="display:flex;gap:10px"><span style="font-size:14px">📍</span><div><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3)">Endereço</div><div style="font-size:13.5px;margin-top:1px">${c.endereco||'—'}</div></div></div>
-          ${c.referencia?`<div style="display:flex;gap:10px"><span style="font-size:14px">🗺</span><div><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3)">Referência</div><div style="font-size:13.5px;margin-top:1px">${c.referencia}</div></div></div>`:''}
-          ${c.observacoes?`<div style="display:flex;gap:10px"><span style="font-size:14px">📝</span><div><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3)">Observações</div><div style="font-size:13px;margin-top:1px;color:var(--txt2)">${c.observacoes}</div></div></div>`:''}
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px">
+          ${[
+            ['📱','Telefone',Utils.formatPhone(c.telefone)],
+            ['📍','Endereço',c.endereco||'—'],
+            c.referencia?['🗺','Referência',c.referencia]:null,
+            c.observacoes?['📝','Observações',c.observacoes]:null,
+          ].filter(Boolean).map(([ico,lbl,val])=>`
+            <div style="display:flex;gap:12px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
+              <span style="font-size:18px">${ico}</span>
+              <div>
+                <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);margin-bottom:3px">${lbl}</div>
+                <div style="font-size:13.5px;color:var(--txt)">${val}</div>
+              </div>
+            </div>`).join('')}
         </div>
-        ${peds.length?`<div style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:12px">
-          <div style="font-size:12px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Últimos pedidos</div>
-          ${peds.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)">
-            <span class="mono" style="font-size:12px;color:var(--txt3)">${p.numero}</span>
-            <span style="font-size:13px;font-weight:600">${Utils.formatCurrency(p.valor_total)}</span>
-            ${Utils.statusBadge(p.status)}
-          </div>`).join('')}
-        </div>`:''}
-        <a href="https://wa.me/55${c.telefone?.replace(/\D/g,'')||''}" target="_blank" class="btn btn-success btn-xl btn-w">💬 Abrir WhatsApp</a>`;
+        ${peds.length?`
+          <div style="border-top:1px solid var(--border);padding-top:16px;margin-bottom:14px">
+            <div style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Últimos pedidos</div>
+            ${peds.map(p=>`
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+                <span class="mono" style="font-size:12px;color:var(--txt3)">${p.numero}</span>
+                <span style="font-family:'Clash Display',sans-serif;font-size:14px;font-weight:700">${Utils.formatCurrency(p.valor_total)}</span>
+                ${Utils.statusBadge(p.status)}
+              </div>`).join('')}
+          </div>`:''}
+        <a href="https://wa.me/55${c.telefone?.replace(/\D/g,'')||''}" target="_blank" class="btn btn-success btn-xl btn-w" style="margin-top:4px">💬 Abrir WhatsApp</a>`;
       document.getElementById('detail-edit-btn').onclick=()=>{closeModal('modal-detail');openModal(id);};
-    } catch(err){document.getElementById('detail-body').innerHTML=`<p style="color:var(--rose)">${err.message}</p>`;}
+    }catch(err){document.getElementById('detail-body').innerHTML=`<p style="color:var(--rose)">${err.message}</p>`;}
   }
 
   async function del(id,nome){
@@ -451,6 +460,14 @@
     else v=v.replace(/(\d{2})(\d{5})(\d{0,4})/,'($1) $2-$3');
     el.value=v;
   }
+
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a[href]');
+    if(!a||a.target==='_blank'||a.href===location.href||!a.href.startsWith(location.origin)) return;
+    e.preventDefault();
+    const t=document.getElementById('pt');t.style.opacity='1';
+    setTimeout(()=>location.href=a.href,260);
+  });
 
   init();
 </script>

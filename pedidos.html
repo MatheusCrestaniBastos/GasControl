@@ -5,84 +5,87 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Pedidos — GasMaster</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>"/>
-  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="style.css"/>
   <style>
-    /* ---- Kanban status filter pills ---- */
-    .status-filters {
-      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-    }
+    /* ---- Status filter pills ---- */
+    .status-filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .sf-pill {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 14px;
-      border-radius: 20px;
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 7px 16px;
+      border-radius: 24px;
       border: 1px solid var(--border);
       background: var(--surface2);
       font-size: 12px; font-weight: 600;
       color: var(--txt3);
       cursor: pointer;
-      transition: all var(--t) var(--ease2);
+      transition: all var(--t2) cubic-bezier(.16,1,.3,1);
       white-space: nowrap;
+      letter-spacing: .3px;
     }
-    .sf-pill:hover { border-color: var(--border2); color: var(--txt); }
-    .sf-pill.on { color: var(--txt); }
-    .sf-pill[data-s=""].on   { background:var(--surface3); border-color:var(--border2); color:var(--txt); }
-    .sf-pill[data-s="pendente"].on { background:var(--amber-dim); border-color:rgba(245,166,35,.3); color:var(--amber); }
-    .sf-pill[data-s="em_entrega"].on { background:var(--blue-dim); border-color:rgba(59,127,255,.3); color:#7BAFFF; }
-    .sf-pill[data-s="entregue"].on { background:var(--emerald-dim); border-color:rgba(0,212,140,.2); color:var(--emerald); }
-    .sf-pill[data-s="cancelado"].on { background:var(--rose-dim); border-color:rgba(255,77,109,.2); color:var(--rose); }
+    .sf-pill:hover { border-color: var(--border2); color: var(--txt); transform: translateY(-1px); }
+    .sf-pill.on { color: var(--txt); transform: translateY(-1px); }
+    .sf-pill[data-s=""].on   { background:var(--surface3); border-color:var(--border2); }
+    .sf-pill[data-s="pendente"].on { background:var(--amber-dim); border-color:rgba(255,184,0,.3); color:var(--amber); box-shadow:0 4px 14px rgba(255,184,0,.15); }
+    .sf-pill[data-s="em_entrega"].on { background:var(--blue-dim); border-color:rgba(59,139,255,.3); color:#7BBFFF; box-shadow:0 4px 14px rgba(59,139,255,.15); }
+    .sf-pill[data-s="entregue"].on { background:var(--emerald-dim); border-color:rgba(0,229,160,.2); color:var(--emerald); box-shadow:0 4px 14px rgba(0,229,160,.12); }
+    .sf-pill[data-s="cancelado"].on { background:var(--rose-dim); border-color:rgba(255,61,107,.2); color:var(--rose); box-shadow:0 4px 14px rgba(255,61,107,.1); }
 
     .sf-count {
       font-size: 10px; font-weight: 800;
       background: rgba(255,255,255,.1);
-      padding: 1px 6px; border-radius: 10px;
+      padding: 1px 7px; border-radius: 10px;
+      min-width: 20px; text-align: center;
     }
 
     /* ---- Status modal buttons ---- */
     .st-btn {
-      display: flex; align-items: flex-start; gap: 14px;
-      padding: 14px 16px;
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 16px 18px;
       border: 1px solid var(--border);
       border-radius: var(--r-md);
       background: var(--surface2);
       cursor: pointer;
-      transition: all var(--t2) var(--ease);
+      transition: all var(--t2) cubic-bezier(.16,1,.3,1);
       text-align: left;
       width: 100%;
-      margin-bottom: 8px;
-      font-family: inherit;
+      margin-bottom: 10px;
+      font-family: 'Satoshi', sans-serif;
     }
-    .st-btn:hover { background: var(--surface3); border-color: var(--border2); transform: translateX(3px); }
-    .st-btn-ico { font-size: 22px; flex-shrink: 0; }
-    .st-btn-lbl { font-size: 14px; font-weight: 700; color: var(--txt); margin-bottom: 2px; }
+    .st-btn:hover { background: var(--surface3); border-color: var(--border2); transform: translateX(4px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+    .st-btn-ico { font-size: 24px; flex-shrink: 0; }
+    .st-btn-lbl { font-size: 14px; font-weight: 700; color: var(--txt); margin-bottom: 3px; }
     .st-btn-sub { font-size: 12px; color: var(--txt3); }
 
-    /* ---- Order number tag ---- */
+    /* ---- Order number ---- */
     .order-num {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11.5px;
-      background: var(--surface2);
+      background: var(--surface3);
       border: 1px solid var(--border);
-      color: var(--txt2);
-      padding: 3px 9px;
-      border-radius: 5px;
-      letter-spacing: .3px;
+      color: var(--txt3);
+      padding: 3px 10px;
+      border-radius: 6px;
+      letter-spacing: .5px;
     }
 
-    /* ---- Value calc display ---- */
+    /* ---- Value display ---- */
     .val-display {
       background: var(--surface2);
-      border: 1px solid rgba(0,212,140,.2);
-      border-radius: var(--r-sm);
-      padding: 10px 14px;
+      border: 1px solid rgba(0,229,160,.2);
+      border-radius: 10px;
+      padding: 11px 14px;
       text-align: center;
-      font-family: 'Syne', sans-serif;
-      font-size: 20px; font-weight: 800;
+      font-family: 'Clash Display', sans-serif;
+      font-size: 22px; font-weight: 700;
       color: var(--emerald);
       letter-spacing: -1px;
+      transition: all var(--t2);
     }
+    .val-display.has-val { box-shadow: 0 0 30px rgba(0,229,160,.1); }
   </style>
 </head>
 <body>
+<div id="pt" style="position:fixed;inset:0;background:var(--bg);z-index:9999;transition:opacity .4s;pointer-events:none;"></div>
 <div class="app-layout">
   <aside class="sidebar" id="sidebar"></aside>
   <div class="mob-overlay" id="mob-overlay"></div>
@@ -102,7 +105,6 @@
     </header>
 
     <div class="page">
-      <!-- Metrics -->
       <div class="metrics" style="grid-template-columns:repeat(4,1fr);">
         <div class="mcard c-blue"><div class="mcard-icon">📦</div><div class="mcard-val" id="mp-total">—</div><div class="mcard-lbl">Total</div></div>
         <div class="mcard c-amber"><div class="mcard-icon">⏳</div><div class="mcard-val" id="mp-pend">—</div><div class="mcard-lbl">Pendentes</div></div>
@@ -117,15 +119,13 @@
             <div class="card-sub" id="order-count">Carregando...</div>
           </div>
         </div>
-
-        <!-- Filters row -->
         <div class="search-row" style="flex-direction:column;gap:12px;align-items:stretch;">
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             <div class="search-wrap" style="flex:1;min-width:180px;">
               <span class="search-ico">🔍</span>
               <input type="text" class="finput" id="search" placeholder="Buscar número, observação..." oninput="onSearch(this.value)"/>
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="loadOrders(true)">↺</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadOrders(true)" title="Atualizar">↺</button>
           </div>
           <div class="status-filters" id="sf">
             <button class="sf-pill on" data-s="" onclick="setFilter('')">Todos <span class="sf-count" id="sf-total">—</span></button>
@@ -135,11 +135,9 @@
             <button class="sf-pill" data-s="cancelado" onclick="setFilter('cancelado')">❌ Cancelado <span class="sf-count" id="sf-canc">—</span></button>
           </div>
         </div>
-
         <div id="order-content">
           <div class="loading-state"><div class="spinner spinner-lg" style="color:var(--brand)"></div><span>Carregando pedidos...</span></div>
         </div>
-
         <div class="pager" id="pager" style="display:none">
           <div class="pager-info" id="pager-info"></div>
           <div class="pager-btns" id="pager-btns"></div>
@@ -151,7 +149,7 @@
 
 <!-- MODAL PEDIDO -->
 <div class="modal-bg" id="modal-order">
-  <div class="modal" style="max-width:600px">
+  <div class="modal" style="max-width:620px">
     <div class="modal-hd">
       <div>
         <div class="modal-title" id="order-modal-title">Novo Pedido</div>
@@ -162,7 +160,6 @@
     <div class="modal-body">
       <div class="alert alert-error" id="oe"><span>⚠</span><span id="oe-msg"></span></div>
       <input type="hidden" id="o-id"/>
-
       <div class="fg">
         <label class="flabel">Cliente <span class="req">*</span></label>
         <select class="finput" id="o-client">
@@ -171,16 +168,15 @@
         <div class="ferror" id="err-cli">Selecione um cliente</div>
         <div class="fhint">Não encontrou? <a href="clientes.html?novo=1" target="_blank" style="color:var(--brand)">Cadastrar novo →</a></div>
       </div>
-
       <div class="frow">
         <div class="fg">
           <label class="flabel">Produto</label>
           <select class="finput" id="o-tipo">
-            <option value="P13">🔥 Botijão P13 (13kg)</option>
-            <option value="P45">🔥 Botijão P45 (45kg)</option>
-            <option value="P20">🔥 Botijão P20 (20kg)</option>
-            <option value="P8">🔥 Botijão P8 (8kg)</option>
-            <option value="outro">Outro produto</option>
+            <option value="P13">🔥 P13 (13kg)</option>
+            <option value="P45">🔥 P45 (45kg)</option>
+            <option value="P20">🔥 P20 (20kg)</option>
+            <option value="P8">🔥 P8 (8kg)</option>
+            <option value="outro">Outro</option>
           </select>
         </div>
         <div class="fg">
@@ -189,11 +185,10 @@
           <div class="ferror" id="err-qtd">Quantidade inválida</div>
         </div>
       </div>
-
       <div class="frow">
         <div class="fg">
           <label class="flabel">Valor unitário (R$) <span class="req">*</span></label>
-          <input type="number" class="finput" id="o-val" min="0" step="0.01" placeholder="0.00" oninput="calcTotal()"/>
+          <input type="number" class="finput" id="o-val" min="0" step="0.01" placeholder="0,00" oninput="calcTotal()"/>
           <div class="ferror" id="err-val">Valor inválido</div>
         </div>
         <div class="fg">
@@ -201,7 +196,6 @@
           <div class="val-display" id="o-total">R$ 0,00</div>
         </div>
       </div>
-
       <div class="frow">
         <div class="fg">
           <label class="flabel">Pagamento</label>
@@ -218,7 +212,6 @@
           <input type="number" class="finput" id="o-troco" min="0" step="0.01" placeholder="Opcional"/>
         </div>
       </div>
-
       <div class="fg">
         <label class="flabel">Endereço de entrega</label>
         <input type="text" class="finput" id="o-end" placeholder="Deixe em branco para usar o do cliente"/>
@@ -239,7 +232,7 @@
 
 <!-- MODAL STATUS -->
 <div class="modal-bg" id="modal-status">
-  <div class="modal" style="max-width:400px">
+  <div class="modal" style="max-width:420px">
     <div class="modal-hd">
       <div>
         <div class="modal-title">Atualizar Status</div>
@@ -254,7 +247,7 @@
       </button>
       <button class="st-btn" onclick="setStatus('em_entrega')">
         <span class="st-btn-ico">🚚</span>
-        <div><div class="st-btn-lbl" style="color:#7BAFFF">Em Entrega</div><div class="st-btn-sub">Saiu para entrega agora</div></div>
+        <div><div class="st-btn-lbl" style="color:#7BBFFF">Em Entrega</div><div class="st-btn-sub">Saiu para entrega agora</div></div>
       </button>
       <button class="st-btn" onclick="setStatus('entregue')">
         <span class="st-btn-ico">✅</span>
@@ -273,6 +266,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="services/supabase.js"></script>
 <script>
+  window.addEventListener('load',()=>{const t=document.getElementById('pt');requestAnimationFrame(()=>{t.style.opacity='0';});});
+
   let pg=1,total_pg=1,q='',filterSt='',editId=null,statusId=null;
   const PER=15;
   const pagIco={dinheiro:'💵',pix:'🟦',cartao_debito:'💳',cartao_credito:'💳',fiado:'🤝'};
@@ -284,63 +279,73 @@
     loadClientsSelect();
     const p=new URLSearchParams(window.location.search);
     if(p.get('novo')==='1') openOrder();
-    if(p.get('status')){setFilter(p.get('status'));}
+    if(p.get('status')) setFilter(p.get('status'));
   }
 
   async function loadMetrics(){
-    try {
+    try{
       const m=await PedidosService.metricas();
-      document.getElementById('mp-total').textContent=m.total;
-      document.getElementById('mp-pend').textContent=m.pendentes;
-      document.getElementById('mp-ent').textContent=m.emEntrega;
-      document.getElementById('mp-done').textContent=m.entregues;
-      // Update filter counts
+      const set=(id,val)=>{
+        const el=document.getElementById(id);
+        if(!el) return;
+        let cur=0;
+        const step=()=>{cur=Math.min(cur+Math.ceil((val-cur)/8)||1,val);el.textContent=cur;if(cur<val)requestAnimationFrame(step);};
+        step();
+      };
+      set('mp-total',m.total);set('mp-pend',m.pendentes);
+      set('mp-ent',m.emEntrega);set('mp-done',m.entregues);
       document.getElementById('sf-total').textContent=m.total;
       document.getElementById('sf-pend').textContent=m.pendentes;
       document.getElementById('sf-ent').textContent=m.emEntrega;
       document.getElementById('sf-done').textContent=m.entregues;
-    } catch(e){}
+    }catch(e){}
   }
 
   async function loadOrders(reset=false){
     if(reset) pg=1;
     const el=document.getElementById('order-content');
     if(pg===1) el.innerHTML=`<div class="loading-state"><div class="spinner spinner-lg" style="color:var(--brand)"></div><span>Carregando...</span></div>`;
-    try {
+    try{
       const r=await PedidosService.listar({search:q,status:filterSt,page:pg,limit:PER});
       total_pg=r.totalPages||1;
       document.getElementById('order-count').textContent=`${r.count} pedido${r.count!==1?'s':''} encontrado${r.count!==1?'s':''}`;
       renderOrders(r.data);
       renderPager(r.count);
-    } catch(err){
-      el.innerHTML=`<div class="tbl-empty"><div class="tbl-empty-ico">❌</div><p>${err.message}</p></div>`;
+    }catch(err){
+      el.innerHTML=`<div class="tbl-empty"><span class="tbl-empty-ico">❌</span><p>${err.message}</p></div>`;
     }
   }
 
   function renderOrders(orders){
     const el=document.getElementById('order-content');
     if(!orders.length){
-      el.innerHTML=`<div class="tbl-empty"><div class="tbl-empty-ico">📦</div><p>Nenhum pedido${filterSt?' com este status':''} encontrado.</p><button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="openOrder()">Criar pedido</button></div>`;
+      el.innerHTML=`<div class="tbl-empty"><span class="tbl-empty-ico">📦</span><p>Nenhum pedido${filterSt?' com este status':''} encontrado.</p><button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="openOrder()">Criar pedido</button></div>`;
       return;
     }
     el.innerHTML=`<div class="tbl-wrap"><table>
       <thead><tr><th>Número</th><th>Cliente</th><th>Produto</th><th>Valor</th><th>Pagamento</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead>
-      <tbody>${orders.map(o=>`<tr>
+      <tbody>${orders.map((o,i)=>`<tr style="animation:slideUp .4s cubic-bezier(.16,1,.3,1) ${i*.03}s both">
         <td><span class="order-num">${o.numero}</span></td>
-        <td><div style="display:flex;align-items:center;gap:9px">
-          <div class="avatar" style="width:30px;height:30px;font-size:11px">${Utils.initials(o.clientes?.nome)}</div>
+        <td><div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar" style="width:34px;height:34px;font-size:12px">${Utils.initials(o.clientes?.nome)}</div>
           <div>
-            <div style="font-weight:600;font-size:13.5px">${o.clientes?.nome||'—'}</div>
-            <div style="font-size:11px;color:var(--txt3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.endereco_entrega||o.clientes?.endereco||''}</div>
+            <div style="font-weight:700;font-size:13.5px">${o.clientes?.nome||'—'}</div>
+            <div style="font-size:11px;color:var(--txt3);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.endereco_entrega||o.clientes?.endereco||''}</div>
           </div>
         </div></td>
-        <td><div style="font-size:13px;font-weight:600">${o.tipo_produto||'P13'}</div><div style="font-size:11px;color:var(--txt3)">${o.quantidade||1} un.</div></td>
-        <td><div style="font-size:13.5px;font-weight:700;color:var(--emerald)">${Utils.formatCurrency(o.valor_total)}</div><div style="font-size:11px;color:var(--txt3)">${Utils.formatCurrency(o.valor_unitario)}/un</div></td>
-        <td style="font-size:12.5px">${pagIco[o.forma_pagamento]||''} ${o.forma_pagamento||'—'}</td>
+        <td>
+          <div style="font-size:13px;font-weight:700">${o.tipo_produto||'P13'}</div>
+          <div style="font-size:11px;color:var(--txt3)">${o.quantidade||1} un.</div>
+        </td>
+        <td>
+          <div style="font-family:'Clash Display',sans-serif;font-size:15px;font-weight:700;color:var(--emerald)">${Utils.formatCurrency(o.valor_total)}</div>
+          <div style="font-size:11px;color:var(--txt3)">${Utils.formatCurrency(o.valor_unitario)}/un</div>
+        </td>
+        <td style="font-size:13px;font-weight:600">${pagIco[o.forma_pagamento]||''} ${o.forma_pagamento||'—'}</td>
         <td>${Utils.statusBadge(o.status)}</td>
         <td style="font-size:12px;color:var(--txt3);white-space:nowrap">${Utils.formatDateShort(o.created_at)}</td>
         <td><div class="td-actions">
-          <button class="btn btn-ghost btn-sm" onclick="openStatusModal('${o.id}','${o.numero}')" title="Mudar status">📋</button>
+          <button class="btn btn-ghost btn-sm" onclick="openStatusModal('${o.id}','${o.numero}')" title="Status">📋</button>
           <button class="btn btn-ghost btn-sm" onclick="openOrder('${o.id}')" title="Editar">✏</button>
           <button class="btn btn-danger btn-sm" onclick="delOrder('${o.id}','${o.numero}')">🗑</button>
         </div></td>
@@ -357,7 +362,7 @@
     let h=`<button class="pager-btn" onclick="goPage(${pg-1})" ${pg===1?'disabled':''}>‹</button>`;
     for(let i=1;i<=total_pg;i++){
       if(i===1||i===total_pg||Math.abs(i-pg)<=1) h+=`<button class="pager-btn ${i===pg?'on':''}" onclick="goPage(${i})">${i}</button>`;
-      else if(Math.abs(i-pg)===2) h+=`<span style="color:var(--txt3);padding:0 2px">…</span>`;
+      else if(Math.abs(i-pg)===2) h+=`<span style="color:var(--txt3);padding:0 3px;line-height:32px">…</span>`;
     }
     h+=`<button class="pager-btn" onclick="goPage(${pg+1})" ${pg===total_pg?'disabled':''}>›</button>`;
     document.getElementById('pager-btns').innerHTML=h;
@@ -372,7 +377,6 @@
     loadOrders(true);
   }
 
-  // ---- CLIENTS SELECT ----
   async function loadClientsSelect(sel=null){
     try{
       const cs=await ClientesService.listarTodos();
@@ -391,15 +395,17 @@
   function calcTotal(){
     const q=parseFloat(document.getElementById('o-qtd').value)||0;
     const v=parseFloat(document.getElementById('o-val').value)||0;
-    document.getElementById('o-total').textContent=Utils.formatCurrency(q*v);
+    const t=q*v;
+    const disp=document.getElementById('o-total');
+    disp.textContent=Utils.formatCurrency(t);
+    disp.classList.toggle('has-val',t>0);
   }
 
-  // ---- ORDER MODAL ----
   async function openOrder(id=null){
     editId=id;
     clearOrderForm();
     document.getElementById('order-modal-title').textContent=id?'Editar Pedido':'Novo Pedido';
-    document.getElementById('order-save-txt').textContent=id?'💾 Salvar Alterações':'📦 Criar Pedido';
+    document.getElementById('order-save-txt').textContent=id?'💾 Salvar':'📦 Criar Pedido';
     if(id){
       try{
         const o=await PedidosService.buscarPorId(id);
@@ -419,10 +425,13 @@
   }
 
   function clearOrderForm(){
-    ['o-id','o-client','o-tipo','o-qtd','o-val','o-pag','o-troco','o-obs','o-end'].forEach(i=>{
-      const e=document.getElementById(i);if(e){e.value=i==='o-qtd'?'1':i==='o-tipo'?'P13':i==='o-pag'?'dinheiro':'';}
+    ['o-id','o-client','o-qtd','o-val','o-pag','o-troco','o-obs','o-end'].forEach(i=>{
+      const e=document.getElementById(i);
+      if(e){e.value=i==='o-qtd'?'1':i==='o-pag'?'dinheiro':'';}
     });
+    document.getElementById('o-tipo').value='P13';
     document.getElementById('o-total').textContent='R$ 0,00';
+    document.getElementById('o-total').classList.remove('has-val');
     document.querySelectorAll('#modal-order .finput').forEach(e=>e.classList.remove('invalid'));
     document.getElementById('oe').classList.remove('show');
   }
@@ -452,7 +461,7 @@
     };
     try{
       if(editId) await PedidosService.atualizar(editId,p);
-      else{const n=await PedidosService.criar(p);Utils.toast('success','Pedido criado!',`Nº ${n.numero}`);}
+      else{const n=await PedidosService.criar(p);Utils.toast('success','Pedido criado! 🎉',`Nº ${n.numero}`);}
       if(editId) Utils.toast('success','Pedido atualizado!');
       closeMod('modal-order');loadOrders(true);loadMetrics();
     }catch(err){
@@ -460,16 +469,16 @@
       document.getElementById('oe-msg').textContent=err.message;
       e.classList.add('show');
     }finally{
-      btn.disabled=false;btn.innerHTML=`<span id="order-save-txt">${editId?'💾 Salvar Alterações':'📦 Criar Pedido'}</span>`;
+      btn.disabled=false;btn.innerHTML=`<span id="order-save-txt">${editId?'💾 Salvar':'📦 Criar Pedido'}</span>`;
     }
   }
 
-  // ---- STATUS MODAL ----
   function openStatusModal(id,num){
     statusId=id;
     document.getElementById('st-num').textContent=`Pedido ${num}`;
     openMod('modal-status');
   }
+
   async function setStatus(s){
     if(!statusId) return;
     try{
@@ -489,6 +498,16 @@
   function openMod(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
   function closeMod(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
   document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',function(e){if(e.target===this)closeMod(this.id);}));
+
+  // Nav transition
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a[href]');
+    if(!a||a.target==='_blank'||a.href===location.href||!a.href.startsWith(location.origin)) return;
+    e.preventDefault();
+    const t=document.getElementById('pt');
+    t.style.opacity='1';
+    setTimeout(()=>location.href=a.href,260);
+  });
 
   init();
 </script>

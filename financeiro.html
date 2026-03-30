@@ -5,91 +5,132 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Financeiro — GasMaster</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>"/>
-  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="style.css"/>
   <style>
-    /* ---- Period shortcuts ---- */
+    /* ---- Period pills ---- */
     .period-pills { display: flex; gap: 6px; flex-wrap: wrap; }
     .pp {
-      padding: 5px 13px; border-radius: 20px;
+      padding: 6px 14px; border-radius: 22px;
       border: 1px solid var(--border);
       background: var(--surface2);
       font-size: 12px; font-weight: 600;
       color: var(--txt3); cursor: pointer;
-      transition: all var(--t);
+      transition: all var(--t2) cubic-bezier(.16,1,.3,1);
     }
-    .pp:hover { border-color: var(--border2); color: var(--txt); }
-    .pp.on { background: var(--brand-dim); border-color: rgba(255,107,53,.3); color: var(--brand); }
+    .pp:hover { border-color: var(--border2); color: var(--txt); transform: translateY(-1px); }
+    .pp.on {
+      background: var(--brand-dim);
+      border-color: var(--border-brand);
+      color: var(--brand);
+      box-shadow: 0 4px 16px rgba(255,92,0,.2);
+      transform: translateY(-1px);
+    }
 
-    /* ---- Bar chart ---- */
+    /* ---- Premium bar chart ---- */
     .bar-chart {
-      height: 180px;
-      display: flex; align-items: flex-end; gap: 5px;
-      padding: 0 4px;
+      height: 200px;
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      padding: 24px 4px 0;
       position: relative;
     }
+    .bar-chart::before {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 1px;
+      background: var(--border);
+    }
+
     .bar-col {
       flex: 1;
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
       cursor: default;
+      min-width: 0;
     }
+
     .bar-fill {
       width: 100%;
-      border-radius: 4px 4px 0 0;
+      border-radius: 6px 6px 0 0;
       min-height: 4px;
-      background: linear-gradient(180deg, var(--brand) 0%, rgba(255,107,53,.35) 100%);
-      transition: height .7s var(--ease);
+      background: linear-gradient(180deg, var(--brand) 0%, rgba(255,92,0,.25) 100%);
+      transition: height .8s cubic-bezier(.16,1,.3,1);
       position: relative;
+      overflow: visible;
     }
-    .bar-fill:hover { background: linear-gradient(180deg, #FF8C55 0%, rgba(255,107,53,.55) 100%); }
-    .bar-fill::after {
+    .bar-fill::before {
       content: attr(data-val);
       position: absolute;
-      top: -22px; left: 50%;
+      top: -24px; left: 50%;
       transform: translateX(-50%);
       font-size: 9px; font-weight: 700;
       color: var(--txt3);
       white-space: nowrap;
       opacity: 0;
       transition: opacity .2s;
+      pointer-events: none;
     }
-    .bar-fill:hover::after { opacity: 1; }
-    .bar-date { font-size: 9px; color: var(--txt3); white-space: nowrap; text-align: center; }
+    .bar-fill:hover {
+      background: linear-gradient(180deg, var(--brand2) 0%, rgba(255,140,64,.4) 100%);
+      box-shadow: 0 0 20px rgba(255,92,0,.3);
+    }
+    .bar-fill:hover::before { opacity: 1; }
+    .bar-date { font-size: 9px; color: var(--txt3); white-space: nowrap; text-align: center; font-weight: 600; }
 
-    /* ---- Donut-style breakdown ---- */
+    /* ---- Breakdown rows ---- */
     .breakdown-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 0;
+      padding: 12px 0;
       border-bottom: 1px solid var(--border);
+      transition: background var(--t);
     }
     .breakdown-row:last-child { border-bottom: none; }
-    .br-left { display: flex; align-items: center; gap: 10px; }
+    .breakdown-row:hover { background: rgba(255,255,255,.02); margin: 0 -26px; padding: 12px 26px; }
+    .br-left { display: flex; align-items: center; gap: 12px; }
     .br-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .br-lbl { font-size: 13px; font-weight: 600; color: var(--txt2); }
-    .br-val { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--txt); }
-    .br-pct { font-size: 11px; color: var(--txt3); margin-top: 1px; }
+    .br-lbl { font-size: 13.5px; font-weight: 600; color: var(--txt2); }
+    .br-val { font-family: 'Clash Display', sans-serif; font-size: 15px; font-weight: 700; color: var(--txt); }
+    .br-pct { font-size: 11px; color: var(--txt3); margin-top: 2px; }
 
-    /* ---- Summary bar at table bottom ---- */
+    /* ---- Summary bar ---- */
     .sum-bar {
-      display: flex; gap: 32px; flex-wrap: wrap;
-      padding: 16px 22px;
+      display: flex; gap: 0; flex-wrap: nowrap;
       background: var(--surface2);
       border-top: 1px solid var(--border);
+      overflow-x: auto;
     }
-    .sum-item {}
-    .sum-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--txt3); margin-bottom: 3px; }
-    .sum-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -1px; }
+    .sum-item {
+      padding: 18px 24px;
+      border-right: 1px solid var(--border);
+      min-width: 160px;
+      flex-shrink: 0;
+    }
+    .sum-item:last-child { border-right: none; }
+    .sum-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--txt3); margin-bottom: 5px; }
+    .sum-val { font-family: 'Clash Display', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -1px; }
 
     /* ---- Fin grid ---- */
-    .fin-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
+    .fin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+    @media(max-width:768px){ .fin-grid { grid-template-columns: 1fr; } }
+
+    /* Period filter card */
+    .period-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 20px 26px;
       margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      animation: slideUp .5s cubic-bezier(.16,1,.3,1) both;
     }
-    @media(max-width:768px){.fin-grid{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
+<div id="pt" style="position:fixed;inset:0;background:var(--bg);z-index:9999;transition:opacity .4s;pointer-events:none;"></div>
 <div class="app-layout">
   <aside class="sidebar" id="sidebar"></aside>
   <div class="mob-overlay" id="mob-overlay"></div>
@@ -104,38 +145,34 @@
         </div>
       </div>
       <div class="tb-right">
-        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">📥 Exportar CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">📥 CSV</button>
         <button class="btn btn-primary" onclick="genReport()">📊 Gerar Relatório</button>
       </div>
     </header>
 
     <div class="page">
 
-      <!-- Period filter card -->
-      <div class="card" style="margin-bottom:18px;">
-        <div class="card-body" style="padding:18px 22px;">
-          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
-            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);">Período</div>
-            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-              <div>
-                <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3);margin-bottom:4px;">De</div>
-                <input type="date" id="d-ini" class="finput" style="width:150px;"/>
-              </div>
-              <div>
-                <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3);margin-bottom:4px;">Até</div>
-                <input type="date" id="d-fim" class="finput" style="width:150px;"/>
-              </div>
-              <button class="btn btn-primary" onclick="genReport()" style="margin-bottom:0">Filtrar</button>
-              <button class="btn btn-ghost" onclick="clearFilter()" style="margin-bottom:0">Limpar</button>
-            </div>
-            <div class="period-pills" id="pp-row">
-              <button class="pp" onclick="setPeriod('hoje')">Hoje</button>
-              <button class="pp" onclick="setPeriod('semana')">Semana</button>
-              <button class="pp on" onclick="setPeriod('mes')">Este Mês</button>
-              <button class="pp" onclick="setPeriod('mes_ant')">Mês Passado</button>
-              <button class="pp" onclick="setPeriod('ano')">Este Ano</button>
-            </div>
+      <!-- Period filter -->
+      <div class="period-card">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);white-space:nowrap;">Período</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3);margin-bottom:5px;">De</div>
+            <input type="date" id="d-ini" class="finput" style="width:155px;"/>
           </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3);margin-bottom:5px;">Até</div>
+            <input type="date" id="d-fim" class="finput" style="width:155px;"/>
+          </div>
+          <button class="btn btn-primary" onclick="genReport()">Filtrar</button>
+          <button class="btn btn-ghost" onclick="clearFilter()">Limpar</button>
+        </div>
+        <div class="period-pills" id="pp-row">
+          <button class="pp" onclick="setPeriod('hoje')">Hoje</button>
+          <button class="pp" onclick="setPeriod('semana')">Semana</button>
+          <button class="pp on" onclick="setPeriod('mes')">Este Mês</button>
+          <button class="pp" onclick="setPeriod('mes_ant')">Mês Passado</button>
+          <button class="pp" onclick="setPeriod('ano')">Este Ano</button>
         </div>
       </div>
 
@@ -147,9 +184,8 @@
         <div class="mcard c-violet"><div class="mcard-icon">📈</div><div class="mcard-val" id="f-ticket">—</div><div class="mcard-lbl">Ticket Médio</div><div class="mcard-sub">Por pedido</div></div>
       </div>
 
-      <!-- Chart + Breakdowns -->
+      <!-- Chart + breakdowns -->
       <div class="fin-grid">
-        <!-- Bar chart -->
         <div class="card">
           <div class="card-hd">
             <div>
@@ -159,16 +195,12 @@
           </div>
           <div class="card-body">
             <div class="bar-chart" id="bar-chart">
-              <div style="display:flex;align-items:center;justify-content:center;width:100%;color:var(--txt3);font-size:13px;">Gere um relatório para ver</div>
+              <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:var(--txt3);font-size:13px;">Gere um relatório para ver</div>
             </div>
           </div>
         </div>
-
-        <!-- Pagamento breakdown -->
         <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Por Forma de Pagamento</div>
-          </div>
+          <div class="card-hd"><div class="card-title">Por Forma de Pagamento</div></div>
           <div class="card-body" id="pag-break">
             <div class="loading-state" style="min-height:60px"><div class="spinner" style="color:var(--brand)"></div></div>
           </div>
@@ -176,28 +208,21 @@
       </div>
 
       <div class="fin-grid">
-        <!-- Produto breakdown -->
         <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Por Tipo de Produto</div>
-          </div>
+          <div class="card-hd"><div class="card-title">Por Tipo de Produto</div></div>
           <div class="card-body" id="prod-break">
             <div class="loading-state" style="min-height:60px"><div class="spinner" style="color:var(--brand)"></div></div>
           </div>
         </div>
-
-        <!-- Status breakdown -->
         <div class="card">
-          <div class="card-hd">
-            <div class="card-title">Por Status</div>
-          </div>
+          <div class="card-hd"><div class="card-title">Por Status</div></div>
           <div class="card-body" id="status-break">
             <div class="loading-state" style="min-height:60px"><div class="spinner" style="color:var(--brand)"></div></div>
           </div>
         </div>
       </div>
 
-      <!-- History table -->
+      <!-- History -->
       <div class="card">
         <div class="card-hd">
           <div>
@@ -209,16 +234,16 @@
           <div class="loading-state"><div class="spinner spinner-lg" style="color:var(--brand)"></div><span>Carregando...</span></div>
         </div>
       </div>
-
     </div>
   </main>
 </div>
 
 <div class="toast-stack" id="toast-container"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="services/supabase.js"></script>
 <script>
+  window.addEventListener('load',()=>{const t=document.getElementById('pt');requestAnimationFrame(()=>{t.style.opacity='0';});});
+
   let reportData=null;
 
   async function init(){
@@ -230,11 +255,11 @@
   function setPeriod(t){
     const h=new Date();let ini,fim;
     switch(t){
-      case 'hoje': ini=fim=h.toISOString().split('T')[0]; break;
-      case 'semana': const d=new Date(h); d.setDate(h.getDate()-h.getDay()); ini=d.toISOString().split('T')[0]; fim=h.toISOString().split('T')[0]; break;
-      case 'mes': ini=new Date(h.getFullYear(),h.getMonth(),1).toISOString().split('T')[0]; fim=new Date(h.getFullYear(),h.getMonth()+1,0).toISOString().split('T')[0]; break;
-      case 'mes_ant': ini=new Date(h.getFullYear(),h.getMonth()-1,1).toISOString().split('T')[0]; fim=new Date(h.getFullYear(),h.getMonth(),0).toISOString().split('T')[0]; break;
-      case 'ano': ini=new Date(h.getFullYear(),0,1).toISOString().split('T')[0]; fim=new Date(h.getFullYear(),11,31).toISOString().split('T')[0]; break;
+      case 'hoje': ini=fim=h.toISOString().split('T')[0];break;
+      case 'semana': const d=new Date(h);d.setDate(h.getDate()-h.getDay());ini=d.toISOString().split('T')[0];fim=h.toISOString().split('T')[0];break;
+      case 'mes': ini=new Date(h.getFullYear(),h.getMonth(),1).toISOString().split('T')[0];fim=new Date(h.getFullYear(),h.getMonth()+1,0).toISOString().split('T')[0];break;
+      case 'mes_ant': ini=new Date(h.getFullYear(),h.getMonth()-1,1).toISOString().split('T')[0];fim=new Date(h.getFullYear(),h.getMonth(),0).toISOString().split('T')[0];break;
+      case 'ano': ini=new Date(h.getFullYear(),0,1).toISOString().split('T')[0];fim=new Date(h.getFullYear(),11,31).toISOString().split('T')[0];break;
     }
     document.getElementById('d-ini').value=ini;
     document.getElementById('d-fim').value=fim;
@@ -253,17 +278,12 @@
   async function genReport(){
     const ini=document.getElementById('d-ini').value;
     const fim=document.getElementById('d-fim').value;
-    const btn=document.querySelector('.btn-primary[onclick="genReport()"]');
-    if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner" style="color:#fff"></div> Carregando';}
+    const btn=document.querySelector('[onclick="genReport()"].btn-primary');
+    if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner" style="color:#fff"></div>';}
     try{
       const r=await PedidosService.relatorioFinanceiro({dataInicio:ini,dataFim:fim});
       reportData=r;
-      renderMetrics(r);
-      renderBarChart(r);
-      renderPagBreak(r);
-      renderProdBreak(r);
-      renderStatusBreak(r);
-      renderHistory(r);
+      renderMetrics(r);renderBarChart(r);renderPagBreak(r);renderProdBreak(r);renderStatusBreak(r);renderHistory(r);
       if(ini&&fim) document.getElementById('chart-period').textContent=`${Utils.formatDateShort(ini+'T12:00:00')} — ${Utils.formatDateShort(fim+'T12:00:00')}`;
       else document.getElementById('chart-period').textContent='Todo o período';
     }catch(err){Utils.toast('error','Erro ao carregar',err.message);}
@@ -283,33 +303,36 @@
 
   function renderBarChart(r){
     const el=document.getElementById('bar-chart');
-    if(!r.pedidos.length){el.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;width:100%;color:var(--txt3);font-size:13px">Sem dados no período</div>`;return;}
+    if(!r.pedidos.length){el.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:var(--txt3);font-size:13px">Sem dados no período</div>`;return;}
     const byDay={};
     r.pedidos.forEach(p=>{const d=p.created_at.split('T')[0];byDay[d]=(byDay[d]||0)+(p.valor_total||0);});
     const days=Object.keys(byDay).sort();
     const vals=days.map(d=>byDay[d]);
     const max=Math.max(...vals)||1;
     el.innerHTML=days.map((d,i)=>{
-      const pct=Math.round(vals[i]/max*100);
+      const pct=Math.max(Math.round(vals[i]/max*100),4);
       const date=new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-      const vStr=Utils.formatCurrency(vals[i]).replace('R$\u00a0','').replace('R$ ','');
-      return `<div class="bar-col" title="${date}: ${Utils.formatCurrency(vals[i])}">
-        <div class="bar-fill" style="height:${pct}%" data-val="R$${vStr}"></div>
+      const vStr=Utils.formatCurrency(vals[i]);
+      return `<div class="bar-col" style="animation:slideUp .5s cubic-bezier(.16,1,.3,1) ${i*.03}s both">
+        <div class="bar-fill" style="height:${pct}%" data-val="${vStr}"></div>
         <div class="bar-date">${date}</div>
       </div>`;
     }).join('');
   }
 
-  function renderBreakdown(elId, entries, colorFn){
+  function renderBreakdown(elId,entries){
     const el=document.getElementById(elId);
-    if(!entries.length){el.innerHTML='<p style="color:var(--txt3);font-size:13px">Sem dados</p>';return;}
+    if(!entries.length){el.innerHTML='<p style="color:var(--txt3);font-size:13px;padding:10px 0">Sem dados no período</p>';return;}
     el.innerHTML=entries.map(e=>`
       <div class="breakdown-row">
         <div class="br-left">
-          <div class="br-dot" style="background:${e.color};box-shadow:0 0 6px ${e.color}40"></div>
-          <div><div class="br-lbl">${e.label}</div><div class="br-pct">${e.pct}% · ${e.count} pedido${e.count!==1?'s':''}</div></div>
+          <div class="br-dot" style="background:${e.color};box-shadow:0 0 8px ${e.color}60"></div>
+          <div>
+            <div class="br-lbl">${e.label}</div>
+            <div class="br-pct">${e.pct}% · ${e.count} pedido${e.count!==1?'s':''}</div>
+          </div>
         </div>
-        <div><div class="br-val">${Utils.formatCurrency(e.val)}</div></div>
+        <div class="br-val">${Utils.formatCurrency(e.val)}</div>
       </div>
     `).join('');
   }
@@ -335,7 +358,7 @@
 
   function renderStatusBreak(r){
     const labels={pendente:'⏳ Pendente',em_entrega:'🚚 Em Entrega',entregue:'✅ Entregue',cancelado:'❌ Cancelado'};
-    const colors={'pendente':'var(--amber)','em_entrega':'var(--blue)','entregue':'var(--emerald)','cancelado':'var(--rose)'};
+    const colors={pendente:'var(--amber)',em_entrega:'var(--blue)',entregue:'var(--emerald)',cancelado:'var(--rose)'};
     const map={};
     r.pedidos.forEach(p=>{const k=p.status||'pendente';if(!map[k])map[k]={val:0,count:0};map[k].val+=p.valor_total||0;map[k].count++;});
     const total=r.pedidos.length||1;
@@ -346,18 +369,18 @@
   function renderHistory(r){
     const el=document.getElementById('hist-table');
     document.getElementById('hist-count').textContent=`${r.pedidos.length} registro${r.pedidos.length!==1?'s':''} no período`;
-    if(!r.pedidos.length){el.innerHTML='<div class="tbl-empty"><div class="tbl-empty-ico">📊</div><p>Nenhum pedido no período.</p></div>';return;}
+    if(!r.pedidos.length){el.innerHTML='<div class="tbl-empty"><span class="tbl-empty-ico">📊</span><p>Nenhum pedido no período.</p></div>';return;}
     const pagIco={dinheiro:'💵',pix:'🟦',cartao_debito:'💳',cartao_credito:'💳',fiado:'🤝'};
     el.innerHTML=`<div class="tbl-wrap"><table>
       <thead><tr><th>Nº Pedido</th><th>Cliente</th><th>Produto</th><th>Qtd</th><th>Unit.</th><th>Total</th><th>Pagamento</th><th>Status</th><th>Data</th></tr></thead>
-      <tbody>${r.pedidos.map(p=>`<tr>
-        <td><span class="order-num" style="font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--surface2);border:1px solid var(--border);color:var(--txt2);padding:3px 9px;border-radius:5px;">${p.numero}</span></td>
-        <td style="font-weight:600">${p.clientes?.nome||'—'}</td>
+      <tbody>${r.pedidos.map((p,i)=>`<tr style="animation:slideUp .4s cubic-bezier(.16,1,.3,1) ${i*.02}s both">
+        <td><span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--surface3);border:1px solid var(--border);color:var(--txt3);padding:3px 10px;border-radius:6px;letter-spacing:.5px">${p.numero}</span></td>
+        <td style="font-weight:700">${p.clientes?.nome||'—'}</td>
         <td style="font-size:13px">${p.tipo_produto||'P13'}</td>
-        <td style="text-align:center;font-size:13px">${p.quantidade||1}</td>
+        <td style="text-align:center;font-size:13px;font-weight:600">${p.quantidade||1}</td>
         <td style="font-size:13px">${Utils.formatCurrency(p.valor_unitario)}</td>
-        <td style="font-weight:700;color:var(--emerald)">${Utils.formatCurrency(p.valor_total)}</td>
-        <td style="font-size:13px">${pagIco[p.forma_pagamento]||''} ${p.forma_pagamento||'—'}</td>
+        <td style="font-family:'Clash Display',sans-serif;font-size:15px;font-weight:700;color:var(--emerald)">${Utils.formatCurrency(p.valor_total)}</td>
+        <td style="font-size:13px;font-weight:600">${pagIco[p.forma_pagamento]||''} ${p.forma_pagamento||'—'}</td>
         <td>${Utils.statusBadge(p.status)}</td>
         <td style="font-size:12px;color:var(--txt3);white-space:nowrap">${Utils.formatDate(p.created_at)}</td>
       </tr>`).join('')}</tbody>
@@ -379,8 +402,16 @@
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download=`gasmaster-${new Date().toISOString().split('T')[0]}.csv`;a.click();
     URL.revokeObjectURL(url);
-    Utils.toast('success','CSV exportado!','Arquivo pronto para download.');
+    Utils.toast('success','CSV exportado! 📥','Arquivo pronto para download.');
   }
+
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a[href]');
+    if(!a||a.target==='_blank'||a.href===location.href||!a.href.startsWith(location.origin)) return;
+    e.preventDefault();
+    const t=document.getElementById('pt');t.style.opacity='1';
+    setTimeout(()=>location.href=a.href,260);
+  });
 
   init();
 </script>
